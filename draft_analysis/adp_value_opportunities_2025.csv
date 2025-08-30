@@ -1,0 +1,86 @@
+ADP_Rank,Player,Team,Position,ADP_Average,Model_Rank,Model_Points,Expert_Rank,ADP_vs_Model,Value_Category,Likely_Rookie,Notes
+174,Dylan Sampson,CLE,RB,178.8,621.0,-2.0,163.0,447.0,Strong Model Buy,True,Rookie prospect
+159,Jack Bech,LV,WR,165.0,536.0,0.3,189.0,377.0,Strong Model Buy,True,Rookie prospect
+225,Joshua Palmer,BUF,WR,222.0,554.0,0.0,181.0,329.0,Strong Model Buy,True,Rookie prospect
+7,Christian McCaffrey,SF,RB,9.2,288.0,54.1,7.0,281.0,Strong Model Buy,False,
+286,Roman Wilson,PIT,WR,322.7,556.0,0.0,421.0,270.0,Strong Model Buy,False,
+47,DJ Moore,CHI,WR,48.4,314.0,41.3,63.0,267.0,Strong Model Buy,True,Rookie prospect
+227,MarShawn Lloyd,GB,RB,222.5,463.0,6.5,182.0,236.0,Strong Model Buy,False,
+160,Marquise Brown,KC,WR,165.6,376.0,22.2,541.0,216.0,Strong Model Buy,False,
+48,Rashee Rice,KC,WR,48.8,252.0,72.6,108.0,204.0,Strong Model Buy,False,
+273,Ollie Gordon II,MIA,RB,273.3,474.0,5.4,373.0,201.0,Strong Model Buy,True,Rookie prospect
+432,Mitchell Evans,CAR,TE,497.0,591.0,0.0,444.0,159.0,Strong Model Buy,True,Rookie prospect
+408,Equanimeous St. Brown,,WR,413.5,559.0,0.0,541.0,151.0,Strong Model Buy,False,
+475,Kadarius Toney,,WR,569.0,620.0,-1.4,,145.0,Strong Model Buy,False,
+91,Cam Skattebo,NYG,RB,94.0,228.0,87.9,94.0,137.0,Strong Model Buy,True,Rookie prospect
+119,Brandon Aiyuk,SF,WR,122.4,249.0,75.4,144.0,130.0,Strong Model Buy,False,
+416,Tyson Bagent,CHI,QB,459.5,545.0,0.2,553.0,129.0,Strong Model Buy,False,
+68,Isiah Pacheco,KC,RB,66.8,197.0,104.2,54.0,129.0,Strong Model Buy,False,
+401,Jarrett Stidham,DEN,QB,383.5,527.0,0.6,554.0,126.0,Strong Model Buy,False,
+149,Rashid Shaheed,NO,WR,152.2,269.0,64.2,106.0,120.0,Strong Model Buy,False,
+380,Hendon Hooker,DET,QB,365.5,500.0,2.8,551.0,120.0,Strong Model Buy,False,
+61,T.J. Hockenson,MIN,TE,62.2,181.0,112.2,72.0,120.0,Strong Model Buy,False,
+468,Avery Williams,PHI,RB,473.0,584.0,0.0,109.0,116.0,Strong Model Buy,False,
+101,Ricky Pearsall,SF,WR,106.2,217.0,90.8,116.0,116.0,Strong Model Buy,False,
+148,Nick Chubb,HOU,RB,151.0,253.0,70.5,155.0,105.0,Strong Model Buy,False,
+497,Baylor Cupp,BAL,TE,409.0,598.0,0.0,,101.0,Strong Model Buy,False,
+83,Evan Engram,DEN,TE,87.4,175.0,114.6,97.0,92.0,Strong Model Buy,False,
+228,Elijah Arroyo,SEA,TE,222.8,316.0,40.9,159.0,88.0,Strong Model Buy,True,Rookie prospect
+486,Tom Kennedy,DET,WR,476.5,573.0,0.0,,87.0,Strong Model Buy,False,
+102,Dak Prescott,DAL,QB,107.8,182.0,112.1,94.0,80.0,Strong Model Buy,False,
+414,Tez Johnson,TB,WR,399.5,491.0,3.3,565.0,77.0,Strong Model Buy,True,Rookie prospect
+87,Stefon Diggs,NE,WR,89.2,160.0,124.9,121.0,73.0,Strong Model Buy,False,
+465,Darrynton Evans,BUF,RB,372.0,537.0,0.3,444.0,72.0,Strong Model Buy,False,
+77,Chris Godwin,TB,WR,79.6,147.0,131.3,94.0,70.0,Strong Model Buy,False,
+78,Chris Olave,NO,WR,80.2,147.0,131.3,120.0,69.0,Strong Model Buy,False,
+122,Keon Coleman,BUF,WR,125.6,190.0,109.2,112.0,68.0,Strong Model Buy,False,
+56,Xavier Worthy,KC,WR,57.2,123.0,147.6,56.0,67.0,Strong Model Buy,False,
+41,Kenneth Walker III,SEA,RB,38.4,105.0,161.0,22.0,64.0,Strong Model Buy,True,Rookie prospect
+8,Amon-Ra St. Brown,DET,WR,9.2,71.0,196.6,541.0,63.0,Strong Model Buy,True,Rookie prospect
+176,Michael Penix Jr.,ATL,QB,181.8,236.0,84.5,167.0,60.0,Strong Model Buy,False,
+50,Sam LaPorta,DET,TE,51.4,107.0,159.9,55.0,57.0,Strong Model Buy,False,
+106,Tyler Warren,IND,TE,112.6,161.0,124.5,76.0,55.0,Strong Model Buy,True,Rookie prospect
+386,Ben Sinnott,WAS,TE,368.5,437.0,10.9,217.0,51.0,Strong Model Buy,False,
+378,J.J. Taylor,HOU,RB,362.0,428.0,12.7,564.0,50.0,Model Buy,False,
+89,Jaylen Warren,PIT,RB,93.4,138.0,137.7,76.0,49.0,Model Buy,False,
+354,Jermaine Burton,CIN,WR,394.7,403.0,16.2,390.0,49.0,Model Buy,False,
+79,Brian Robinson Jr.,WAS,RB,83.0,128.0,142.9,2.0,49.0,Model Buy,True,Rookie prospect
+365,Jalin Hyatt,NYG,WR,352.0,413.0,14.7,445.0,48.0,Model Buy,False,
+196,Cedric Tillman,CLE,WR,206.6,244.0,77.8,169.0,48.0,Model Buy,False,
+6,CeeDee Lamb,DAL,WR,5.2,51.0,212.6,24.0,45.0,Model Buy,True,Rookie prospect
+57,David Montgomery,DET,RB,59.4,101.0,167.2,35.0,44.0,Model Buy,False,
+134,Austin Ekeler,WAS,RB,136.4,177.0,113.8,107.0,43.0,Model Buy,False,
+43,Marvin Harrison Jr.,ARI,WR,41.2,86.0,185.3,53.0,43.0,Model Buy,True,Rookie prospect
+33,Jaxon Smith-Njigba,SEA,WR,34.0,75.0,193.7,62.0,42.0,Model Buy,True,Rookie prospect
+238,Taysom Hill,NO,TE,246.8,279.0,58.2,204.0,41.0,Model Buy,False,
+20,Drake London,ATL,WR,20.0,61.0,205.3,44.0,41.0,Model Buy,False,
+86,Deebo Samuel Sr.,WAS,WR,88.4,126.0,145.8,81.0,40.0,Model Buy,False,
+18,Brock Bowers,LV,TE,18.8,58.0,207.7,28.0,40.0,Model Buy,True,Rookie prospect
+549,Kendall Milton,CIN,RB,449.0,588.0,0.0,547.0,39.0,Model Buy,False,
+39,George Kittle,SF,TE,38.2,77.0,192.6,27.0,38.0,Model Buy,True,Rookie prospect
+42,Mike Evans,TB,WR,40.2,80.0,189.3,444.0,38.0,Model Buy,True,Rookie prospect
+17,A.J. Brown,PHI,WR,17.4,55.0,211.1,541.0,38.0,Model Buy,False,
+453,Devontez Walker,BAL,WR,496.0,491.0,3.3,22.0,38.0,Model Buy,False,
+10,Malik Nabers,NYG,WR,9.6,47.0,215.9,32.0,37.0,Model Buy,True,Rookie prospect
+15,Brian Thomas Jr.,JAC,WR,14.8,52.0,211.5,30.0,37.0,Model Buy,True,Rookie prospect
+25,Ladd McConkey,LAC,WR,25.2,62.0,205.0,41.0,37.0,Model Buy,False,
+74,Mark Andrews,BAL,TE,75.4,111.0,157.9,58.0,37.0,Model Buy,False,
+169,Ray Davis,BUF,RB,174.8,206.0,97.5,151.0,37.0,Model Buy,False,
+189,Brenton Strange,JAC,TE,198.8,224.0,89.7,125.0,35.0,Model Buy,False,
+81,Rome Odunze,CHI,WR,85.2,116.0,153.4,92.0,35.0,Model Buy,False,
+389,Ainias Smith,PHI,WR,371.5,421.0,13.5,156.0,32.0,Model Buy,False,
+36,Davante Adams,LAR,WR,37.8,68.0,199.1,46.0,32.0,Model Buy,False,
+503,Charlie Jones,CIN,WR,510.5,535.0,0.4,532.0,32.0,Model Buy,False,
+73,Jaylen Waddle,MIA,WR,74.8,104.0,163.5,85.0,31.0,Model Buy,False,
+452,Dalvin Cook,,RB,358.0,482.0,4.0,13.0,30.0,Model Buy,False,
+52,Courtland Sutton,DEN,WR,53.6,81.0,188.7,68.0,29.0,Model Buy,False,
+40,Terry McLaurin,WAS,WR,38.4,67.0,199.3,48.0,27.0,Model Buy,True,Rookie prospect
+32,Breece Hall,NYJ,RB,33.6,57.0,208.8,19.0,25.0,Model Buy,False,
+399,Jermar Jefferson,TEN,RB,420.5,424.0,13.1,18.0,25.0,Model Buy,False,
+455,Carson Wentz,,QB,447.5,480.0,4.5,,25.0,Model Buy,False,
+5,Justin Jefferson,MIN,WR,4.6,29.0,234.7,18.0,24.0,Model Buy,True,Rookie prospect
+94,Travis Etienne Jr.,JAC,RB,100.0,117.0,153.1,111.0,23.0,Model Buy,False,
+28,Tyreek Hill,MIA,WR,28.8,50.0,212.6,204.0,22.0,Model Buy,False,
+115,Jordan Mason,MIN,RB,117.8,137.0,138.4,103.0,22.0,Model Buy,False,
+14,Nico Collins,HOU,WR,14.4,36.0,227.3,31.0,22.0,Model Buy,True,Rookie prospect
+165,Christian Kirk,HOU,WR,169.6,186.0,110.9,165.0,21.0,Model Buy,False,
