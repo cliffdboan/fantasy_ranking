@@ -1,25 +1,11 @@
-#!/usr/bin/env python3
-"""
-Fantasy Football Prediction Pipeline
-====================================
-
-This script runs the complete pipeline for fantasy football prediction:
-1. Model training (with team context and enhanced features)
-2. Prediction generation
-3. Adjustment application
-4. Performance evaluation (if actual data available)
-
-Usage: python main.py [year]
-Example: python main.py 2025
-"""
-
 import sys
 import os
 import subprocess
 from datetime import datetime
 
 def get_prediction_year():
-    """Get prediction year from command line or user input"""
+    """Get prediction year from command line or user input
+    Example: python main.py 2025"""
     if len(sys.argv) > 1:
         try:
             year = int(sys.argv[1])
@@ -30,7 +16,6 @@ def get_prediction_year():
             print(f"Invalid year: {sys.argv[1]}")
             sys.exit(1)
 
-    # Interactive input
     while True:
         try:
             year = int(input(f"Enter prediction year (2000-{datetime.now().year + 1}): "))

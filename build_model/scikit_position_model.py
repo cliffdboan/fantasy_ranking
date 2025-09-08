@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def build_improved_position_model(position):
-    # Load and process data same as original position_specific_model.py
+    # Load and process data
     import sys
     sys.path.append('..')
     from data_cleaning.create_df import all_data
     from team_context_integration import add_team_context_features, get_team_context_features
-    
+
     data = all_data.copy()
-    
+
     # Add team context features
     data = add_team_context_features(data, year=2024)
 
@@ -26,25 +26,25 @@ def build_improved_position_model(position):
     data['Age'] = data['Age'].fillna(data['Age'].median())
     data['G'] = pd.to_numeric(data['G'], errors='coerce')
 
-    # Add trend features using PPR scoring (same as original)
+    # Add trend features using PPR scoring
     data_sorted = data.sort_values(['Player', 'Age'])
     prev_stats = data_sorted.groupby('Player')[['PPR_Points', 'G']].shift(1)
     data_sorted['FantPt_Change'] = data_sorted['PPR_Points'] - prev_stats['PPR_Points']
     data_sorted['Games_Change'] = data_sorted['G'] - prev_stats['G']
-    
-    # NEW: Add contextual features that explain major prediction errors
-    # Team change penalty (Sam Darnold, Joe Burrow situations)
+
+    # Add contextual features that explain major prediction errors
+    # Team change penalty
     data_sorted['Team_Change'] = data_sorted.groupby('Player')['Tm'].transform(lambda x: (x != x.shift(1)).astype(int))
-    
-    # Injury recovery indicator (J.K. Dobbins, De'Von Achane)
+
+    # Injury recovery indicator
     prev_games = pd.to_numeric(prev_stats['G'], errors='coerce')
     data_sorted['Games_Missed_Prev'] = 17 - prev_games
     data_sorted['Injury_Recovery'] = np.where(data_sorted['Games_Missed_Prev'] > 8, 1, 0)
-    
-    # Low usage/high potential (Chase Brown situation)
+
+    # Low usage/high potential
     prev_ppr = pd.to_numeric(data_sorted.groupby('Player')['PPR_Points'].shift(1), errors='coerce')
     data_sorted['Low_Usage_High_Potential'] = np.where((prev_ppr < 100) & (data_sorted['Age'] < 26), 1, 0)
-    
+
     data = data_sorted.fillna(0)
 
     # Filter by position
@@ -69,7 +69,7 @@ def build_improved_position_model(position):
     enhanced_features = []
 
     if position == 'QB':
-        # QB improvements: Better capture rushing upside (Josh Allen issue)
+        # QB rushing upside
         pos_data['Rush_Att'] = pd.to_numeric(pos_data['Att.1'], errors='coerce').fillna(0)
         pos_data['Rush_Yds'] = pd.to_numeric(pos_data['Yds.1'], errors='coerce').fillna(0)
         pos_data['Rush_TD'] = pd.to_numeric(pos_data['TD.1'], errors='coerce').fillna(0)
@@ -78,8 +78,8 @@ def build_improved_position_model(position):
         pos_data['Rush_YPG'] = pos_data['Rush_Yds'] / pos_data['G'].replace(0, 1)
         pos_data['Rush_Att_PG'] = pos_data['Rush_Att'] / pos_data['G'].replace(0, 1)
         pos_data['QB_Mobility_Score'] = pos_data['Rush_YPG'] + (pos_data['Rush_Att_PG'] * 2)  # Weight attempts higher
-        
-        # NEW: Breakout QB detection (Sam Darnold situation)
+
+        # Breakout QB detection
         prev_att = pd.to_numeric(pos_data.groupby('Player')['Att'].shift(1), errors='coerce')
         pos_data['Low_Attempts_Prev'] = np.where(prev_att < 200, 1, 0)
 
@@ -120,7 +120,7 @@ def build_improved_position_model(position):
 
     # Add team context features for this position
     team_features = get_team_context_features(position)
-    
+
     # Combine all features
     all_features = base_features + enhanced_features + team_features
     feature_cols = [col for col in all_features if col in pos_data.columns]

@@ -283,8 +283,36 @@ def format_draft_sheet():
             }
         </style>
         <script>
+            // Load saved state on page load
+            window.addEventListener('load', function() {
+                loadSavedState();
+            });
+            
             function toggleDrafted(row) {
                 row.classList.toggle('drafted');
+                saveDraftedState();
+            }
+            
+            function saveDraftedState() {
+                const draftedPlayers = [];
+                document.querySelectorAll('tbody tr.drafted').forEach(row => {
+                    const playerName = row.children[1].textContent;
+                    draftedPlayers.push(playerName);
+                });
+                localStorage.setItem('draftedPlayers', JSON.stringify(draftedPlayers));
+            }
+            
+            function loadDraftedState() {
+                const saved = localStorage.getItem('draftedPlayers');
+                if (saved) {
+                    const draftedPlayers = JSON.parse(saved);
+                    document.querySelectorAll('tbody tr').forEach(row => {
+                        const playerName = row.children[1].textContent;
+                        if (draftedPlayers.includes(playerName)) {
+                            row.classList.add('drafted');
+                        }
+                    });
+                }
             }
             
             function filterPosition(pos) {
@@ -302,6 +330,8 @@ def format_draft_sheet():
                         row.style.display = 'none';
                     }
                 });
+                
+                localStorage.setItem('positionFilter', pos);
             }
             
             function filterTier(tier) {
@@ -319,6 +349,8 @@ def format_draft_sheet():
                         row.style.display = 'none';
                     }
                 });
+                
+                localStorage.setItem('tierFilter', tier);
             }
             
             function searchPlayers() {
@@ -333,6 +365,8 @@ def format_draft_sheet():
                         row.style.display = 'none';
                     }
                 });
+                
+                localStorage.setItem('searchTerm', search);
             }
             
             function filterADP(hasADP) {
@@ -352,6 +386,8 @@ def format_draft_sheet():
                         row.style.display = 'none';
                     }
                 });
+                
+                localStorage.setItem('adpFilter', hasADP);
             }
             
             function resetFilters() {
@@ -360,7 +396,19 @@ def format_draft_sheet():
                 document.querySelector('.pos-filter').classList.add('active');
                 document.querySelector('.tier-filter').classList.add('active');
                 document.querySelector('.adp-filter').classList.add('active');
-                document.querySelectorAll('tbody tr').forEach(row => row.style.display = '');
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    row.style.display = '';
+                    row.classList.remove('drafted');
+                });
+                
+                // Clear localStorage
+                localStorage.removeItem('searchTerm');
+                localStorage.removeItem('positionFilter');
+                localStorage.removeItem('tierFilter');
+                localStorage.removeItem('adpFilter');
+                localStorage.removeItem('draftedPlayers');
+                localStorage.removeItem('sortColumn');
+                localStorage.removeItem('sortDirection');
             }
             
             function sortTable(columnIndex) {
@@ -398,6 +446,70 @@ def format_draft_sheet():
                 
                 // Re-append sorted rows
                 rows.forEach(row => tbody.appendChild(row));
+                
+                // Save sort state
+                localStorage.setItem('sortColumn', columnIndex);
+                localStorage.setItem('sortDirection', isAsc ? 'desc' : 'asc');
+            }
+            
+            function loadSavedState() {
+                // Load search term
+                const savedSearch = localStorage.getItem('searchTerm');
+                if (savedSearch) {
+                    document.getElementById('search').value = savedSearch;
+                    searchPlayers();
+                }
+                
+                // Load position filter
+                const savedPosition = localStorage.getItem('positionFilter');
+                if (savedPosition) {
+                    document.querySelectorAll('.pos-filter').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.textContent === savedPosition) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    filterPosition(savedPosition);
+                }
+                
+                // Load tier filter
+                const savedTier = localStorage.getItem('tierFilter');
+                if (savedTier) {
+                    document.querySelectorAll('.tier-filter').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.textContent === savedTier) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    filterTier(savedTier);
+                }
+                
+                // Load ADP filter
+                const savedADP = localStorage.getItem('adpFilter');
+                if (savedADP) {
+                    document.querySelectorAll('.adp-filter').forEach(btn => {
+                        btn.classList.remove('active');
+                        if ((btn.textContent === 'ALL' && savedADP === 'ALL') ||
+                            (btn.textContent === 'Has ADP' && savedADP === 'HAS_ADP') ||
+                            (btn.textContent === 'No ADP' && savedADP === 'NO_ADP')) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    filterADP(savedADP);
+                }
+                
+                // Load sort state
+                const savedColumn = localStorage.getItem('sortColumn');
+                const savedDirection = localStorage.getItem('sortDirection');
+                if (savedColumn && savedDirection) {
+                    const columnIndex = parseInt(savedColumn);
+                    const header = document.querySelectorAll('th')[columnIndex];
+                    header.classList.add(savedDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                    sortTable(columnIndex);
+                }
+                
+                // Load drafted players (must be last to work with filters)
+                loadDraftedState();
             }
         </script>
     </head>
