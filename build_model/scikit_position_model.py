@@ -272,10 +272,6 @@ models = {}
 model_stats = {}
 
 print("Building position-specific models...")
-print("Key notes:")
-print("- QB: Enhanced rushing metrics to capture mobile QBs like Josh Allen")
-print("- RB: Better workload tracking and age penalties")
-print("- All: Rookie/sophomore adjustments to reduce overvaluation")
 print()
 
 for pos in positions:

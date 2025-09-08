@@ -7,7 +7,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 stats_dir = os.path.join(project_root, 'stats')
 
-# Use only fantasy stats to reduce memory usage
+# Use only fantasy stats to reduce memory usage (using all the data was crashing)
 fantasy_files = glob.glob(os.path.join(stats_dir, 'fantasy_stats_for_*.csv'))
 fantasy_dfs = [pd.read_csv(file) for file in fantasy_files]
 

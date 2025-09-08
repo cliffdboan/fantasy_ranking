@@ -27,10 +27,8 @@ def scrape_defense_rankings():
         wait.until(EC.presence_of_element_located((By.ID, "heatmap")))
         time.sleep(5)
 
-        # Get all heatmap rectangles
+        # Get all heatmap rect[angle]s
         rects = driver.find_elements(By.CSS_SELECTOR, ".apexcharts-heatmap-rect")
-
-        # NFL teams in order
         teams = [
             'ARI', 'ATL', 'BAL', 'BUF', 'CAR', 'CHI', 'CIN', 'CLE',
             'DAL', 'DEN', 'DET', 'GB', 'HOU', 'IND', 'JAX', 'KC',
@@ -72,18 +70,17 @@ def main():
         # Convert to DataFrame
         df = pd.DataFrame(data)
 
-        # Pivot so teams are rows, positions are columns
+        # Swap rows and columns
         pivot_df = df.pivot(index='team', columns='position', values='rank')
 
-        # Save to CSV
         pivot_df.to_csv('nfl_defense_rankings.csv')
 
-        print(f"✅ Saved {len(data)} rankings to 'nfl_defense_rankings.csv'")
+        print(f"+++++Saved {len(data)} rankings to 'nfl_defense_rankings.csv'")
         print("\nPreview:")
         print(pivot_df.head())
 
     else:
-        print("❌ No data scraped")
+        print("-----No data scraped")
 
 if __name__ == "__main__":
     main()
