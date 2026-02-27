@@ -5,24 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# years = []
-# for file in os.listdir('predictions'):
-#     if file.endswith('.csv'):
-#         year = int(file.split('_')[-1].split('.')[0])
-#         if year >= 2000:
-#             years.append(year)
-
-# while True:
-#     try:
-#         print(f"Years with predictions: {years}")
-#         PREDICTION_YEAR = int(input(f"Enter a year listed above to view predictions: "))
-#         if PREDICTION_YEAR in years:
-#             break
-#         else:
-#             print(f"Year {PREDICTION_YEAR} not found in predictions. Please try again.")
-#     except ValueError:
-#         print("Invalid input. Please enter a valid year.")
-PREDICTION_YEAR = 2024
+PREDICTION_YEAR = 2025
 
 def create_prediction_visuals(merged):
     """Create comprehensive visualizations for prediction analysis"""
