@@ -71,8 +71,6 @@ def predict_with_position_models(year=PREDICTION_YEAR):
         # Use enhanced position-specific features from enhanced_features.py
         pos_data = add_advanced_position_features(pos_data, position)
 
-        # Experience features are now handled by add_contextual_features()
-
         # Prepare features - align with model expectations
         features_df = pd.DataFrame()
         for feature in model_features:
@@ -84,7 +82,7 @@ def predict_with_position_models(year=PREDICTION_YEAR):
         # Make predictions
         pred_points = model.predict(features_df.values)
 
-        # Create results (same format as existing)
+        # Create results
         for i, (idx, row) in enumerate(pos_data.iterrows()):
             predictions.append({
                 'Player': row['Player'],
@@ -97,7 +95,7 @@ def predict_with_position_models(year=PREDICTION_YEAR):
 
         print(f"{position}: {len(pos_data)} predictions made")
 
-    # Convert to DataFrame and rank (same as existing)
+    # Convert to DataFrame and rank 
     pred_df = pd.DataFrame(predictions)
     pred_df = pred_df.sort_values('Predicted_Fantasy_Points', ascending=False)
     pred_df['Rank'] = range(1, len(pred_df) + 1)

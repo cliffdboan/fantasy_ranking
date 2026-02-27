@@ -226,7 +226,7 @@ print("Building position-specific models...")
 print()
 
 for pos in positions:
-    model, stats = build_improved_position_model(pos)
+    model, stats = build_position_model(pos)
     models[pos] = model
     model_stats[pos] = stats
 

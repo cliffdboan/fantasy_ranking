@@ -80,16 +80,16 @@ def run_predictions(year):
                               capture_output=True, text=True)
 
         if result.returncode != 0:
-            print(f"✗ Prediction generation failed: {result.stderr}")
+            print(f"!!!!! Prediction generation failed: {result.stderr} !!!!!")
             os.chdir('..')
             return False
 
         print(result.stdout)
-        print(f"✓ {year} predictions generated successfully!")
+        print(f"-----{year} predictions generated successfully.")
         os.chdir('..')
         return True
     except Exception as e:
-        print(f"✗ Prediction generation failed: {e}")
+        print(f"!!!!! Prediction generation failed: {e} !!!!!")
         os.chdir('..')
         return False
 
