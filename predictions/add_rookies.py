@@ -16,10 +16,7 @@ def add_rookies():
 
     # Target rookies to add (based on expert projections)
     target_rookies = [
-        'Ashton Jeanty', 'Omarion Hampton', 'TreVeyon Henderson', 'RJ Harvey',
-        'Emeka Egbuka', 'Quinn Ewers', 'Jalen Milroe', 'Colston Loveland',
-        'Matthew Golden', 'Tyler Warren', 'Mason Taylor', 'Tre Harris',
-        'Jayden Higgins', 'Shedeur Sanders'
+        # TODO: Create a dynamic way to get this list
     ]
 
     # Filter to only rookies not already in model
@@ -70,10 +67,10 @@ def add_rookies():
 
     # Save updated predictions
     combined_df.to_csv('fantasy_predictions_adjusted_2025.csv', index=False)
-    print(f"✅ Added {len(rookies_added)} rookies to predictions file")
+    print(f"Added {len(rookies_added)} rookies to predictions file")
 
     # Update draft sheet by running comparison script
-    print("🔄 Updating draft sheet...")
+    print("Updating draft sheet...")
 
     # Import and run the comparison function
     sys.path.append('../draft_analysis')

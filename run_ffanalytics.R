@@ -27,6 +27,10 @@ remotes::install_local("./ffanalytics-master", force = TRUE, quiet = FALSE)
 library(ffanalytics)
 library(dplyr)
 library(tidyr)
+library(lubridate)
+
+# Set current season
+current_season <- year(Sys.Date())
 
 cat("Starting fantasy football projection scrape...\n")
 
@@ -42,7 +46,7 @@ tryCatch({
   scraped_data <- scrape_data(
     src = sources,
     pos = positions,
-    season = 2025,  # Current season
+    season = current_season  # Current season
     week = NULL     # Season-long projections
   )
 
@@ -60,7 +64,7 @@ tryCatch({
     add_player_info()
 
   # Save the results
-  output_file <- "predictions/expert_projections_2025.csv"
+  output_file <- sprintf("predictions/expert_projections_%d.csv", current_season)
   write.csv(final_projections, output_file, row.names = FALSE)
   cat("Expert projections saved to:", output_file, "\n")
 
