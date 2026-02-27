@@ -10,14 +10,15 @@ def add_contextual_features(data):
     data_sorted['Team_Change'] = data_sorted['Team_Change'].fillna(0)
 
     # 2. INJURY RECOVERY INDICATOR
+    # Players under 28 will see boost after injury while older players will be penalized
     prev_games = pd.to_numeric(data_sorted.groupby('Player')['G'].shift(1), errors='coerce')
     data_sorted['Games_Missed_Prev'] = 17 - prev_games
     data_sorted['Games_Missed_Prev'] = data_sorted['Games_Missed_Prev'].fillna(0)
-    data_sorted['Injury_Recovery'] = np.where(data_sorted['Games_Missed_Prev'] > 8, 1, 0)
 
     # Injury recovery boost for young players
-    data_sorted['Injury_Recovery_Boost'] = np.where(
-        (data_sorted['Injury_Recovery'] == 1) & (data_sorted['Age'] < 28), 1.2, 1.0
+    data_sorted['Injury_Recovery'] = np.where(
+        (data_sorted['Games_Missed_Prev'] > 8) & (data_sorted['Age'] < 28), 1,
+        np.where((data_sorted['Games_Missed_Prev'] > 8) & (data_sorted['Age'] >= 28), 0.7, 0)
     )
 
     # 3. WORKLOAD PREMIUM (Fix RB undervaluation)
