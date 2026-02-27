@@ -14,7 +14,7 @@ def add_contextual_features(data):
     data_sorted['Games_Missed_Prev'] = 17 - prev_games
     data_sorted['Games_Missed_Prev'] = data_sorted['Games_Missed_Prev'].fillna(0)
     data_sorted['Injury_Recovery'] = np.where(data_sorted['Games_Missed_Prev'] > 8, 1, 0)
-    
+
     # Injury recovery boost for young players
     data_sorted['Injury_Recovery_Boost'] = np.where(
         (data_sorted['Injury_Recovery'] == 1) & (data_sorted['Age'] < 28), 1.2, 1.0
@@ -121,7 +121,7 @@ def add_advanced_position_features(data, position):
         data['High_Workload'] = np.where(data['Touches_PG'] > 18, 1, 0)
 
     elif position in ['WR', 'TE']:
-        # Enhanced features (priority)
+        # Enhanced features
         rec_yds = pd.to_numeric(data['Yds.2'], errors='coerce').fillna(0)
         data['Target_Efficiency'] = rec_yds / pd.to_numeric(data['Tgt'], errors='coerce').replace(0, 1)
         rec_tds = pd.to_numeric(data['TD.2'], errors='coerce').fillna(0)
@@ -132,7 +132,6 @@ def add_advanced_position_features(data, position):
             (data['Elite_Target_Share'] == 0), 10, 0
         )
 
-        # Additional features from predict_position_specific.py
         data['Target_PG'] = pd.to_numeric(data['Tgt'], errors='coerce').fillna(0) / data['G'].replace(0, 1)
         data['Catch_Rate'] = pd.to_numeric(data['Rec'], errors='coerce').fillna(0) / pd.to_numeric(data['Tgt'], errors='coerce').replace(0, 1)
         data['YPG'] = pd.to_numeric(data['Yds.2'], errors='coerce').fillna(0) / data['G'].replace(0, 1)

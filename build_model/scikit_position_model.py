@@ -12,12 +12,12 @@ def build_position_model(position):
     sys.path.append('..')
     from data_cleaning.create_df import all_data
     from team_context_integration import add_team_context_features, get_team_context_features
-    from enhanced_features import add_contextual_features
+    from enhanced_features import add_contextual_features, add_advanced_position_features
 
     data = all_data.copy()
 
     # Add team context features
-    data = add_team_context_features(data, year=2024)
+    data = add_team_context_features(data, year=2025)
 
     # Use PPR scoring directly from data
     data['FantPt'] = pd.to_numeric(data['FantPt'], errors='coerce')
@@ -32,20 +32,8 @@ def build_position_model(position):
     data_sorted['FantPt_Change'] = data_sorted['PPR_Points'] - prev_stats['PPR_Points']
     data_sorted['Games_Change'] = data_sorted['G'] - prev_stats['G']
 
-    # Add contextual features that explain major prediction errors
-    # Team change penalty
-    data_sorted['Team_Change'] = data_sorted.groupby('Player')['Tm'].transform(lambda x: (x != x.shift(1)).astype(int))
-
-    # Injury recovery indicator
-    prev_games = pd.to_numeric(prev_stats['G'], errors='coerce')
-    data_sorted['Games_Missed_Prev'] = 17 - prev_games
-    data_sorted['Injury_Recovery'] = np.where(data_sorted['Games_Missed_Prev'] > 8, 1, 0)
-
-    # Low usage/high potential
-    prev_ppr = pd.to_numeric(data_sorted.groupby('Player')['PPR_Points'].shift(1), errors='coerce')
-    data_sorted['Low_Usage_High_Potential'] = np.where((prev_ppr < 100) & (data_sorted['Age'] < 26), 1, 0)
-
-    data = data_sorted.fillna(0)
+    # Use enhanced_features for all contextual features
+    data = add_contextual_features(data_sorted)
 
     # Filter by position
     pos_data = data[data['FantPos'] == position].copy()
@@ -54,81 +42,44 @@ def build_position_model(position):
         print(f"Skipping {position}: only {len(pos_data)} samples")
         return None
 
-    # Start with original features + new contextual features
+    # Use enhanced_features for position-specific features
+    pos_data = add_advanced_position_features(pos_data, position)
+
+    # Base features + contextual features from enhanced_features.py
     base_features = [
         'Age', 'G', 'GS',
         'Cmp', 'Att', 'Yds', 'TD', 'Int',
-        'Tgt', 'Rec', 'Y/R',
-        'Y/A',
-        'Fmb', 'FL',
-        'FantPt_Change', 'Games_Change',
-        'Team_Change', 'Games_Missed_Prev', 'Injury_Recovery', 'Low_Usage_High_Potential'
+        'Tgt', 'Rec', 'Y/R', 'Y/A', 'Fmb', 'FL',
+        'FantPt_Change', 'Games_Change'
     ]
 
-    # Add position-specific enhanced features
-    enhanced_features = []
+    # Contextual features from enhanced_features.py
+    contextual_features = [
+        'Team_Change', 'Games_Missed_Prev', 'Injury_Recovery', 'Injury_Recovery_Boost',
+        'Low_Usage_High_Potential', 'Total_Touches', 'Workload_Premium', 'Elite_Workload',
+        'Proven_Starter', 'QB_Streaming_Penalty', 'Committee_Risk', 'Proven_Performer',
+        'Elite_Target_Share', 'Target_Regression_Risk', 'PPR_Std', 'Seasons_Played',
+        'Experience', 'Is_Rookie', 'Is_Sophomore'
+    ]
 
+    # Position-specific features from enhanced_features.py
     if position == 'QB':
-        # QB rushing upside
-        pos_data['Rush_Att'] = pd.to_numeric(pos_data['Att.1'], errors='coerce').fillna(0)
-        pos_data['Rush_Yds'] = pd.to_numeric(pos_data['Yds.1'], errors='coerce').fillna(0)
-        pos_data['Rush_TD'] = pd.to_numeric(pos_data['TD.1'], errors='coerce').fillna(0)
-
-        # Key QB rushing metrics
-        pos_data['Rush_YPG'] = pos_data['Rush_Yds'] / pos_data['G'].replace(0, 1)
-        pos_data['Rush_Att_PG'] = pos_data['Rush_Att'] / pos_data['G'].replace(0, 1)
-        pos_data['QB_Mobility_Score'] = pos_data['Rush_YPG'] + (pos_data['Rush_Att_PG'] * 2)  # Weight attempts higher
-
-        # Breakout QB detection
-        prev_att = pd.to_numeric(pos_data.groupby('Player')['Att'].shift(1), errors='coerce')
-        pos_data['Low_Attempts_Prev'] = np.where(prev_att < 200, 1, 0)
-
-        enhanced_features = ['Rush_YPG', 'Rush_Att_PG', 'QB_Mobility_Score', 'Low_Attempts_Prev']
-
+        pos_features = ['Pass_Att_PG', 'QB_Efficiency', 'Turnover_Rate', 'Low_Attempts_Prev',
+                       'Rush_Att', 'Rush_Yds', 'Rush_TD', 'Rush_YPG', 'Rush_Att_PG', 'QB_Mobility_Score']
     elif position == 'RB':
-        # RB improvements: Better workload prediction (highest MAE issue)
-        pos_data['Total_Touches'] = pd.to_numeric(pos_data['Att.1'], errors='coerce').fillna(0) + pd.to_numeric(pos_data['Rec'], errors='coerce').fillna(0)
-        pos_data['Touches_PG'] = pos_data['Total_Touches'] / pos_data['G'].replace(0, 1)
-        pos_data['Target_Share'] = pd.to_numeric(pos_data['Tgt'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-
-        # Age penalty for RBs (sharp decline after 27)
-        pos_data['RB_Age_Penalty'] = np.where(pos_data['Age'] > 27, (pos_data['Age'] - 27) ** 1.5, 0)
-
-        # Workload sustainability
-        pos_data['High_Workload'] = np.where(pos_data['Touches_PG'] > 18, 1, 0)
-
-        enhanced_features = ['Total_Touches', 'Touches_PG', 'Target_Share', 'RB_Age_Penalty', 'High_Workload']
-
-    elif position in ['WR', 'TE']:
-        # WR/TE improvements: Target quality metrics
-        pos_data['Target_PG'] = pd.to_numeric(pos_data['Tgt'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-        pos_data['Catch_Rate'] = pd.to_numeric(pos_data['Rec'], errors='coerce').fillna(0) / pd.to_numeric(pos_data['Tgt'], errors='coerce').replace(0, 1)
-        pos_data['YPG'] = pd.to_numeric(pos_data['Yds.2'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-
-        enhanced_features = ['Target_PG', 'Catch_Rate', 'YPG']
-
-    # Add experience tracking (rookie penalty for overvaluation)
-    pos_data_sorted = pos_data.sort_values(['Player', 'Age'])
-    pos_data_sorted['Experience'] = pos_data_sorted.groupby('Player').cumcount() + 1
-    pos_data_sorted['Is_Rookie'] = np.where(pos_data_sorted['Experience'] == 1, 1, 0)
-    pos_data_sorted['Is_Sophomore'] = np.where(pos_data_sorted['Experience'] == 2, 1, 0)
-
-    # Update pos_data with sorted version
-    pos_data = pos_data_sorted.copy()
-
-    enhanced_features.extend(['Experience', 'Is_Rookie', 'Is_Sophomore'])
+        pos_features = ['Snap_Share_Proxy', 'Goal_Line_Upside', 'Workload_Bonus', 'Elite_Workload_Bonus',
+                       'Proven_Starter_Bonus', 'Young_Opportunity', 'Touches_PG', 'Target_Share',
+                       'RB_Age_Penalty', 'High_Workload']
+    else:  # WR/TE
+        pos_features = ['Target_Efficiency', 'Red_Zone_Value', 'Target_Regression_Protection',
+                       'Proven_Target_Bonus', 'Target_PG', 'Catch_Rate', 'YPG']
 
     # Add team context features for this position
     team_features = get_team_context_features(position)
 
     # Combine all features
-    all_features = base_features + enhanced_features + team_features
+    all_features = base_features + contextual_features + pos_features + team_features
     feature_cols = [col for col in all_features if col in pos_data.columns]
-
-    # Add enhanced features to dataframe
-    for feat in enhanced_features:
-        if feat not in pos_data.columns:
-            print(f"Warning: {feat} not found in data for {position}")
 
     features_df = pos_data[feature_cols].copy()
 

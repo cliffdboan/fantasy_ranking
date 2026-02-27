@@ -3,6 +3,10 @@ import os
 import subprocess
 from datetime import datetime
 
+# This should be run after the team context is available.
+# Should be done as close to your fantasy draft as possible, ideally in August
+# since team DEF and predictions should be available by then.
+
 def get_prediction_year():
     """Get prediction year from command line or user input
     Example: python main.py 2025"""
@@ -38,14 +42,14 @@ def run_model_training():
         os.chdir('..')
 
         if result.returncode != 0:
-            print(f"✗ Model training failed: {result.stderr}")
+            print(f"!!!!! Model training failed: {result.stderr} !!!!!")
             return False
 
         print(result.stdout)
-        print("✓ Model training completed successfully!")
+        print("-----Model training completed successfully!")
         return True
     except Exception as e:
-        print(f"✗ Model training failed: {e}")
+        print(f"!!!!! Model training failed: {e} !!!!!")
         return False
 
 def run_predictions(year):
