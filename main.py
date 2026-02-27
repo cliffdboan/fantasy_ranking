@@ -112,9 +112,9 @@ def run_adjustments(year):
             if 'def apply_prediction_adjustments(predictions_df, year=' in line:
                 lines[i] = f'def apply_prediction_adjustments(predictions_df, year={year}):'
             elif 'fantasy_predictions_position_specific_' in line and '.csv' in line:
-                lines[i] = line.replace('2024', str(year)).replace('2025', str(year))
+                lines[i] = line.replace('2025', str(year)).replace('2026', str(year))
             elif 'fantasy_predictions_adjusted_' in line and '.csv' in line:
-                lines[i] = line.replace('2024', str(year)).replace('2025', str(year))
+                lines[i] = line.replace('2025', str(year)).replace('2026', str(year))
         content = '\n'.join(lines)
 
         with open('prediction_adjustments.py', 'w') as f:
@@ -125,16 +125,16 @@ def run_adjustments(year):
                               capture_output=True, text=True)
 
         if result.returncode != 0:
-            print(f"✗ Adjustment application failed: {result.stderr}")
+            print(f"!!!!! Adjustment application failed: {result.stderr} !!!!!")
             os.chdir('..')
             return False
 
         print(result.stdout)
-        print("✓ Adjustments applied successfully!")
+        print("-----Adjustments applied successfully!")
         os.chdir('..')
         return True
     except Exception as e:
-        print(f"✗ Adjustment application failed: {e}")
+        print(f"!!!!! Adjustment application failed: {e} !!!!!")
         os.chdir('..')
         return False
 
@@ -147,7 +147,7 @@ def run_evaluation(year):
     # Check if actual data exists for evaluation
     actual_file = f'stats/fantasy_stats_for_{year}.csv'
     if not os.path.exists(actual_file):
-        print(f"⚠ No actual data found for {year} - skipping evaluation")
+        print(f"!!!!! No actual data found for {year} - skipping evaluation !!!!!")
         return True
 
     try:
@@ -157,14 +157,14 @@ def run_evaluation(year):
         os.chdir('..')
 
         if result.returncode != 0:
-            print(f"✗ Performance evaluation failed: {result.stderr}")
+            print(f"!!!!! Performance evaluation failed: {result.stderr} !!!!!")
             return False
 
         print(result.stdout)
-        print("✓ Performance evaluation completed!")
+        print("-----Performance evaluation completed!")
         return True
     except Exception as e:
-        print(f"✗ Performance evaluation failed: {e}")
+        print(f"!!!!! Performance evaluation failed: {e} !!!!!")
         return False
 
 def show_results(year):
@@ -186,7 +186,7 @@ def show_results(year):
         if not os.path.exists(f'predictions/fantasy_predictions_adjusted_{year}.csv'):
             # Try the predicting directory
             df = pd.read_csv(f'predicting/../predictions/fantasy_predictions_adjusted_{year}.csv')
-        print(f"\n🏆 TOP 10 PREDICTIONS FOR {year}:")
+        print(f"\n-----TOP 10 PREDICTIONS FOR {year}:")
         print("-" * 50)
         top_10 = df.head(10)
         for i, (_, row) in enumerate(top_10.iterrows(), 1):
@@ -196,7 +196,7 @@ def show_results(year):
 
 def main():
     """Main pipeline execution"""
-    print("🏈 Fantasy Football Prediction Pipeline")
+    print("-----Fantasy Football Prediction Pipeline")
     print("=" * 50)
 
     # Get prediction year
@@ -214,7 +214,7 @@ def main():
     # Execute pipeline
     for step_name, step_func in steps:
         if not step_func():
-            print(f"\n✗ Pipeline failed at: {step_name}")
+            print(f"\n!!!!! Pipeline failed at: {step_name} !!!!!")
             sys.exit(1)
 
     # Show results
