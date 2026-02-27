@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 import pickle
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 def build_improved_position_model(position):
     # Load and process data
