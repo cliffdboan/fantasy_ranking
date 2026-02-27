@@ -6,12 +6,13 @@ from sklearn.metrics import mean_absolute_error, r2_score
 import pickle
 import matplotlib.pyplot as plt
 
-def build_improved_position_model(position):
+def build_position_model(position):
     # Load and process data
     import sys
     sys.path.append('..')
     from data_cleaning.create_df import all_data
     from team_context_integration import add_team_context_features, get_team_context_features
+    from enhanced_features import add_contextual_features
 
     data = all_data.copy()
 

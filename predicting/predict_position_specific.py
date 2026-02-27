@@ -3,15 +3,8 @@ import numpy as np
 import pickle
 from datetime import datetime
 
-# while True:
-#     try:
-#         PREDICTION_YEAR = int(input("Enter the year to predict: "))
-#         if PREDICTION_YEAR < 2000 or PREDICTION_YEAR > datetime.now().year:
-#             raise ValueError
-#         break
-#     except ValueError:
-#         print(f"Invalid year. Please enter a year between 2000 and {datetime.now().year}.")
-PREDICTION_YEAR = 2025
+# CHANGE THIS EACH YEAR THAT YOU WANT TO PREDICT
+PREDICTION_YEAR = 2026
 
 def predict_with_position_models(year=PREDICTION_YEAR):
     # Load current year's stats (same pattern as existing script)
@@ -21,14 +14,19 @@ def predict_with_position_models(year=PREDICTION_YEAR):
     import sys
     sys.path.append('../build_model')
     from team_context_integration import add_team_context_features
+    from enhanced_features import add_contextual_features, add_advanced_position_features
+
     latest_data = add_team_context_features(latest_data, year=year)
+
+    # Add enhanced contextual features
+    latest_data = add_contextual_features(latest_data)
     try:
         prev_data = pd.read_csv(f'../stats/fantasy_stats_for_{year-2}.csv', header=1)
         prev_stats = prev_data.drop_duplicates('Player').set_index('Player')[['FantPt', 'G']]
     except:
         prev_stats = pd.DataFrame()
 
-    # Add trend features (same as existing)
+    # Add trend features
     if not prev_stats.empty:
         latest_data['Prev_FantPt'] = pd.to_numeric(latest_data['Player'].map(prev_stats['FantPt']), errors='coerce').fillna(0)
         latest_data['FantPt_Change'] = pd.to_numeric(latest_data['FantPt'], errors='coerce') - latest_data['Prev_FantPt']
@@ -37,31 +35,9 @@ def predict_with_position_models(year=PREDICTION_YEAR):
         latest_data['FantPt_Change'] = 0
         latest_data['Games_Change'] = 0
 
-    # NEW: Add contextual features for prediction
-    # Team change (assume 0 for prediction year - would need roster data to detect)
-    latest_data['Team_Change'] = 0
-
-    # Games missed previous year (injury recovery)
-    if not prev_stats.empty:
-        prev_games = pd.to_numeric(latest_data['Player'].map(prev_stats['G']), errors='coerce').fillna(17)
-        latest_data['Games_Missed_Prev'] = 17 - prev_games
-        latest_data['Injury_Recovery'] = np.where(latest_data['Games_Missed_Prev'] > 8, 1, 0)
-    else:
-        latest_data['Games_Missed_Prev'] = 0
-        latest_data['Injury_Recovery'] = 0
-
-    # Low usage/high potential
-    if not prev_stats.empty:
-        prev_ppr = pd.to_numeric(latest_data['Player'].map(prev_stats['FantPt']), errors='coerce').fillna(0)
-        latest_data['Low_Usage_High_Potential'] = np.where(
-            (prev_ppr < 100) & (pd.to_numeric(latest_data['Age'], errors='coerce') < 26), 1, 0
-        )
-    else:
-        latest_data['Low_Usage_High_Potential'] = 0
-
     predictions = []
 
-    # Base features (same as existing)
+    # Base features, used as human reference
     base_performance_stats = [
         'Age', 'G', 'GS',
         'Cmp', 'Att', 'Yds', 'TD', 'Int',
@@ -92,40 +68,10 @@ def predict_with_position_models(year=PREDICTION_YEAR):
         pos_data['G'] = pd.to_numeric(pos_data['G'], errors='coerce').fillna(1)
         pos_data['Age'] = pd.to_numeric(pos_data['Age'], errors='coerce').fillna(25)
 
-        # Add enhanced features based on position
-        if position == 'QB':
-            pos_data['Rush_Att'] = pd.to_numeric(pos_data['Att.1'], errors='coerce').fillna(0)
-            pos_data['Rush_Yds'] = pd.to_numeric(pos_data['Yds.1'], errors='coerce').fillna(0)
-            pos_data['Rush_TD'] = pd.to_numeric(pos_data['TD.1'], errors='coerce').fillna(0)
-            pos_data['Rush_YPG'] = pos_data['Rush_Yds'] / pos_data['G'].replace(0, 1)
-            pos_data['Rush_Att_PG'] = pos_data['Rush_Att'] / pos_data['G'].replace(0, 1)
-            pos_data['QB_Mobility_Score'] = pos_data['Rush_YPG'] + (pos_data['Rush_Att_PG'] * 2)
+        # Use enhanced position-specific features from enhanced_features.py
+        pos_data = add_advanced_position_features(pos_data, position)
 
-            # NEW: Low attempts previous year (breakout detection)
-            if not prev_stats.empty:
-                prev_att = pos_data['Player'].map(prev_stats.get('Att', pd.Series())).fillna(0)
-                pos_data['Low_Attempts_Prev'] = np.where(prev_att < 200, 1, 0)
-            else:
-                pos_data['Low_Attempts_Prev'] = 0
-
-        elif position == 'RB':
-            pos_data['Total_Touches'] = pd.to_numeric(pos_data['Att.1'], errors='coerce').fillna(0) + pd.to_numeric(pos_data['Rec'], errors='coerce').fillna(0)
-            pos_data['Touches_PG'] = pos_data['Total_Touches'] / pos_data['G'].replace(0, 1)
-            pos_data['Target_Share'] = pd.to_numeric(pos_data['Tgt'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-            pos_data['RB_Age_Penalty'] = np.where(pos_data['Age'] > 27, (pos_data['Age'] - 27) ** 1.5, 0)
-            pos_data['High_Workload'] = np.where(pos_data['Touches_PG'] > 18, 1, 0)
-
-        elif position in ['WR', 'TE']:
-            pos_data['Target_PG'] = pd.to_numeric(pos_data['Tgt'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-            pos_data['Catch_Rate'] = pd.to_numeric(pos_data['Rec'], errors='coerce').fillna(0) / pd.to_numeric(pos_data['Tgt'], errors='coerce').replace(0, 1)
-            pos_data['YPG'] = pd.to_numeric(pos_data['Yds.2'], errors='coerce').fillna(0) / pos_data['G'].replace(0, 1)
-
-        # Add experience features (rookie/sophomore adjustments)
-        pos_data_sorted = pos_data.sort_values(['Player', 'Age'])
-        pos_data_sorted['Experience'] = pos_data_sorted.groupby('Player').cumcount() + 1
-        pos_data_sorted['Is_Rookie'] = np.where(pos_data_sorted['Experience'] == 1, 1, 0)
-        pos_data_sorted['Is_Sophomore'] = np.where(pos_data_sorted['Experience'] == 2, 1, 0)
-        pos_data = pos_data_sorted.copy()
+        # Experience features are now handled by add_contextual_features()
 
         # Prepare features - align with model expectations
         features_df = pd.DataFrame()
