@@ -112,11 +112,16 @@ def check_ppr_model_performance():
         pearson_corr, _ = pearsonr(merged['Predicted_Fantasy_Points'], merged['PPR'])
         spearman_corr, _ = spearmanr(merged['Predicted_Fantasy_Points'], merged['PPR'])
         mae = np.mean(np.abs(merged['Predicted_Fantasy_Points'] - merged['PPR']))
+        # MAPE only for players with >50 PPR to avoid division by small numbers
+        mape_data = merged[merged['PPR'] > 50]
+        mape = np.mean(np.abs((mape_data['PPR'] - mape_data['Predicted_Fantasy_Points']) / mape_data['PPR'])) * 100 if len(mape_data) > 0 else 0
+
 
         print(f"\nOVERALL PERFORMANCE")
         print(f"   • Pearson Correlation: {pearson_corr:.3f} {'[GOOD]' if pearson_corr > 0.5 else '[FAIR]' if pearson_corr > 0.3 else '[POOR]'}")
         print(f"   • Spearman Correlation: {spearman_corr:.3f} {'[GOOD]' if spearman_corr > 0.5 else '[FAIR]' if spearman_corr > 0.3 else '[POOR]'}")
         print(f"   • Mean Absolute Error: {mae:.1f} points")
+        print(f"   • Mean Absolute Percentage Error: {mape:.1f}%")
 
     # Top performers analysis
     print(f"\nTOP PERFORMERS ANALYSIS")
