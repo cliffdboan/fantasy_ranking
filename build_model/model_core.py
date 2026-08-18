@@ -100,19 +100,23 @@ def get_feature_columns(position):
         'Low_Usage_High_Potential', 'Total_Touches', 'Workload_Premium', 'Elite_Workload',
         'Proven_Starter', 'QB_Streaming_Penalty', 'Committee_Risk', 'Proven_Performer',
         'Elite_Target_Share', 'Target_Regression_Risk', 'PPR_Std', 'Seasons_Played',
-        'Experience', 'Is_Rookie', 'Is_Sophomore'
+        'Experience', 'Is_Rookie', 'Is_Sophomore',
+        'PPR_Weighted_3yr', 'PPR_Trend_Slope', 'Touches_Weighted_3yr', 'Touches_Trend_Slope',
+        'Recent_PPR_Std', 'Games_Missed_2yr', 'Tgt_Share', 'Tgt_Share_Trend',
+        'Rush_Share', 'Rush_Share_Trend'
     ]
 
     if position == 'QB':
         pos_features = ['Pass_Att_PG', 'QB_Efficiency', 'Turnover_Rate', 'Low_Attempts_Prev',
-                       'Rush_Att', 'Rush_Yds', 'Rush_TD', 'Rush_YPG', 'Rush_Att_PG', 'QB_Mobility_Score']
+                       'Rush_Att', 'Rush_Yds', 'Rush_TD', 'Rush_YPG', 'Rush_Att_PG', 'QB_Mobility_Score',
+                       'QB_Age_Penalty']
     elif position == 'RB':
         pos_features = ['Snap_Share_Proxy', 'Goal_Line_Upside', 'Workload_Bonus', 'Elite_Workload_Bonus',
                        'Proven_Starter_Bonus', 'Young_Opportunity', 'Touches_PG', 'Target_Share',
-                       'RB_Age_Penalty', 'High_Workload']
+                       'RB_Age_Penalty', 'High_Workload', 'RB_Age_Cliff']
     else:  # WR/TE
         pos_features = ['Target_Efficiency', 'Red_Zone_Value', 'Target_Regression_Protection',
-                       'Proven_Target_Bonus', 'Target_PG', 'Catch_Rate', 'YPG']
+                       'Proven_Target_Bonus', 'Target_PG', 'Catch_Rate', 'YPG', 'WR_TE_Age_Penalty']
 
     team_features = get_team_context_features(position)
 
