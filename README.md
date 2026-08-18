@@ -13,6 +13,8 @@ Features come from three places: the player's own recent box score and trend (mu
 
 Model choice, feature list, and hyperparameters are all validated with a walk-forward backtest (`build_model/backtest.py`) - train on strictly-past data, predict a held-out year, score against what actually happened - rather than a single spot-checked season. As of the last full validation (2010-2025, 64 position-year folds): **avg MAE 46.3, Pearson 0.704, Spearman 0.684, top-20 hit rate 0.625**. Re-run the backtest after any modeling change; don't trust a change that only looks better on one year.
 
+The final adjusted-predictions file is trimmed to a draftable pool per position (`DRAFT_POOL_SIZE` in `predicting/prediction_adjustments.py` - defaults to QB 36 / RB 70 / WR 70 / TE 30, tune per your league format), so the output isn't cluttered with every player who logged any fantasy-position stats last season. The cutoff is applied to *adjusted* points, after the manual adjustments run - not to last season's raw games/points, since that would risk cutting a legitimate bounce-back candidate (e.g. a stud RB who tore an ACL in week 2 last year) before the model or the Injury_Recovery/Backup_QB_Breakout adjustments even got a say. The raw predictions file (`fantasy_predictions_position_specific_{year}.csv`) stays unfiltered, since `check_ppr_predictions.py` and `backtest.py` score against it.
+
 ## Project structure
 
 ```
