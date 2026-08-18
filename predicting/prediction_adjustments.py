@@ -3,6 +3,32 @@ import numpy as np
 import os
 import sys
 
+# Draft-relevant depth per position for the final adjusted output - keeps the
+# predictions file focused on a realistically draftable pool instead of every
+# player who logged any fantasy-position stats last season (which includes
+# plenty of players nobody would ever draft, e.g. a TE who caught one pass in
+# garbage time). Deliberately applied to ADJUSTED points, after
+# apply_prediction_adjustments runs - not to last season's raw games/points,
+# which would risk cutting a player before the model (and the Injury_Recovery
+# / Backup_QB_Breakout adjustments above) even get a chance to value them
+# correctly - e.g. a stud RB who tore an ACL in week 2 last year has almost
+# no games/points last season but can still be a legitimate top pick once
+# healthy. Tune these per your league size/format.
+DRAFT_POOL_SIZE = {
+    'QB': 36,
+    'RB': 70,
+    'WR': 70,
+    'TE': 30,
+}
+
+def filter_to_draft_pool(predictions_df, pool_size=DRAFT_POOL_SIZE):
+    """Keep only the top N players per position by Adjusted_Fantasy_Points."""
+    kept = [
+        predictions_df[predictions_df['Position'] == position].nlargest(n, 'Adjusted_Fantasy_Points')
+        for position, n in pool_size.items()
+    ]
+    return pd.concat(kept, ignore_index=True)
+
 def apply_prediction_adjustments(predictions_df, year=2026):
     """Apply manual adjustments based on known prediction patterns"""
 
@@ -98,6 +124,13 @@ if __name__ == "__main__":
     try:
         predictions = pd.read_csv(f'../predictions/{year}/fantasy_predictions_position_specific_{year}.csv')
         adjusted = apply_prediction_adjustments(predictions, year=year)
+
+        # Trim to a draftable pool, then re-rank so ranks run 1..N over the
+        # kept players rather than leaving gaps from the dropped ones.
+        adjusted = filter_to_draft_pool(adjusted)
+        adjusted = adjusted.sort_values('Adjusted_Fantasy_Points', ascending=False)
+        adjusted['Adjusted_Rank'] = range(1, len(adjusted) + 1)
+
         show_adjustment_summary(adjusted)
 
         # Save adjusted predictions
