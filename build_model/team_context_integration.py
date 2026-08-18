@@ -58,6 +58,14 @@ def add_team_context_features(data, year=2024, verbose=True):
     """
     try:
         team_context = pd.read_csv(f'../team_data/{year}/team_context_{year}.csv')
+        # team_context's own 'Year' column is redundant (always equal to the
+        # `year` argument already passed in) and, left in, collides with any
+        # 'Year' column already on `data` - pandas silently resolves that by
+        # renaming both to 'Year_x'/'Year_y' rather than erroring, which
+        # breaks anything downstream that expects a plain 'Year' column to
+        # still mean the feature season. Drop it before merging so the merge
+        # can never touch `data`'s own 'Year'.
+        team_context = team_context.drop(columns=['Year'], errors='ignore')
         data_with_context = data.merge(team_context, left_on='Tm', right_on='Team', how='left')
     except FileNotFoundError:
         if verbose:
