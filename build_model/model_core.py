@@ -12,7 +12,7 @@ this module is always safe regardless of which CLI entry point does it.
 """
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 
 from team_context_integration import add_team_context_features, get_team_context_features
@@ -124,14 +124,27 @@ def get_feature_columns(position):
 
 
 def make_model(position):
-    """Position-tuned RandomForest (same hyperparameters this project already
-    used - untouched by the train/target fix)."""
+    """Position-tuned estimator. Selected per position by comparing
+    RandomForest against ExtraTrees/GradientBoosting/HistGradientBoosting via
+    GroupKFold(by Player) cross-validation, then confirmed on the walk-forward
+    backtest (build_model/backtest.py) over the full 2010-2025 range - the
+    internal CV isn't time-ordered, and a couple of its winners (notably
+    HistGradientBoosting for RB/WR) looked great in CV but didn't hold up
+    walk-forward, especially in the data-sparse early-2010s folds.
+
+    QB (~1,200 samples, the smallest/noisiest position) was the one case
+    where every alternative tried - ExtraTrees, GradientBoosting, RF/ET
+    blends, re-tuned RandomForest - came out even or behind the original
+    hyperparameters on backtest MAE, so it's left as-is. RB just wanted more,
+    less constrained trees than before. WR/TE favor ExtraTrees' extra
+    randomization over plain bagging.
+    """
     if position == 'QB':
         return RandomForestRegressor(n_estimators=125, max_depth=10, random_state=42)
     elif position == 'RB':
-        return RandomForestRegressor(n_estimators=175, max_depth=12, random_state=42)
-    else:
-        return RandomForestRegressor(n_estimators=150, max_depth=11, random_state=42)
+        return RandomForestRegressor(n_estimators=300, min_samples_leaf=3, random_state=42)
+    else:  # WR/TE
+        return ExtraTreesRegressor(n_estimators=500, min_samples_leaf=3, random_state=42)
 
 
 def fit_position_model(lagged_data, position, as_of_year=None):
