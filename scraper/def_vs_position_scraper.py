@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import os
+import sys
 
 def scrape_defense_rankings():
     """scraper to get team defense rankings vs each position"""
@@ -61,7 +63,7 @@ def scrape_defense_rankings():
     finally:
         driver.quit()
 
-def main():
+def main(year):
     print("Scraping defense rankings...")
 
     data = scrape_defense_rankings()
@@ -73,9 +75,11 @@ def main():
         # Swap rows and columns
         pivot_df = df.pivot(index='team', columns='position', values='rank')
 
-        pivot_df.to_csv('nfl_defense_rankings.csv')
+        os.makedirs(f'../team_data/{year}', exist_ok=True)
+        output_path = f'../team_data/{year}/nfl_defense_rankings_{year}.csv'
+        pivot_df.to_csv(output_path)
 
-        print(f"+++++Saved {len(data)} rankings to 'nfl_defense_rankings.csv'")
+        print(f"+++++Saved {len(data)} rankings to '{output_path}'")
         print("\nPreview:")
         print(pivot_df.head())
 
@@ -83,4 +87,5 @@ def main():
         print("-----No data scraped")
 
 if __name__ == "__main__":
-    main()
+    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+    main(year)

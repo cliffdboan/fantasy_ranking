@@ -11,7 +11,7 @@ def add_rookies():
     """Add rookies from expert projections to model predictions and update draft sheet"""
 
     # Read current predictions and expert data
-    df = pd.read_csv('fantasy_predictions_adjusted_2025.csv')
+    df = pd.read_csv('2025/fantasy_predictions_adjusted_2025.csv')
     expert_df = pd.read_csv('expert_projections_clean.csv')
 
     # Target rookies to add (based on expert projections)
@@ -66,20 +66,20 @@ def add_rookies():
     combined_df['Adjusted_Rank'] = range(1, len(combined_df) + 1)
 
     # Save updated predictions
-    combined_df.to_csv('fantasy_predictions_adjusted_2025.csv', index=False)
+    combined_df.to_csv('2025/fantasy_predictions_adjusted_2025.csv', index=False)
     print(f"Added {len(rookies_added)} rookies to predictions file")
 
     # Update draft sheet by running comparison script
     print("Updating draft sheet...")
 
     # Import and run the comparison function
-    sys.path.append('../draft_analysis')
+    sys.path.append('../draft_builder')
     from compare_predictions import compare_predictions
 
     # Generate new draft sheet with rookies included
-    model_file = 'fantasy_predictions_adjusted_2025.csv'
+    model_file = '2025/fantasy_predictions_adjusted_2025.csv'
     expert_file = 'expert_projections_clean.csv'
-    output_file = '../draft_analysis/draft_sheet_2025.csv'
+    output_file = '../draft_builder/draft_sheet_2025.csv'
 
     try:
         comparison_df = compare_predictions(model_file, expert_file, output_file)

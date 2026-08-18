@@ -4,8 +4,13 @@ from scipy.stats import pearsonr, spearmanr
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import sys
 
-PREDICTION_YEAR = 2025
+sys.path.append('..')
+from data_cleaning.create_df import load_fantasy_stats
+
+# Year to validate, passed on the command line: python check_ppr_predictions.py 2025
+PREDICTION_YEAR = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
 
 def create_prediction_visuals(merged):
     """Create comprehensive visualizations for prediction analysis"""
@@ -78,7 +83,8 @@ def create_prediction_visuals(merged):
     axes[1,2].legend()
 
     plt.tight_layout()
-    plt.savefig('model_analysis/ppr_prediction_analysis.png', dpi=300, bbox_inches='tight')
+    os.makedirs(f'../model_analysis/{PREDICTION_YEAR}', exist_ok=True)
+    plt.savefig(f'../model_analysis/{PREDICTION_YEAR}/ppr_prediction_analysis.png', dpi=300, bbox_inches='tight')
     plt.close()
 
 def check_ppr_model_performance():
@@ -87,10 +93,10 @@ def check_ppr_model_performance():
     print(f"Predictions: {PREDICTION_YEAR} | Validation: {PREDICTION_YEAR}")
     print("="*60)
     # Load position-specific PPR predictions
-    predictions = pd.read_csv(f'predictions/fantasy_predictions_position_specific_{PREDICTION_YEAR}.csv')
+    predictions = pd.read_csv(f'../predictions/{PREDICTION_YEAR}/fantasy_predictions_position_specific_{PREDICTION_YEAR}.csv')
 
-    # Load actual year's results - handle multi-level headers
-    actual = pd.read_csv(f'stats/fantasy_stats_for_{PREDICTION_YEAR}.csv', header=1)
+    # Load actual year's results (auto-detects PFR's single vs double header row)
+    actual = load_fantasy_stats(f'../stats/fantasy_stats_for_{PREDICTION_YEAR}.csv')
 
     # Clean actual data
     actual_clean = actual[['Player', 'FantPos', 'PPR']].copy()
@@ -178,12 +184,10 @@ def check_ppr_model_performance():
     # Create visualizations
     create_prediction_visuals(merged)
 
-    print(f"\nVisualizations saved to: model_analysis/ppr_prediction_analysis.png")
+    print(f"\nVisualizations saved to: model_analysis/{PREDICTION_YEAR}/ppr_prediction_analysis.png")
     print(f"\n" + "="*60)
     print("Analysis complete!")
     print("="*60)
 
 if __name__ == "__main__":
-    # Ensure model_analysis directory exists
-    os.makedirs('model_analysis', exist_ok=True)
     check_ppr_model_performance()

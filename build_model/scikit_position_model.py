@@ -1,150 +1,19 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
 import pickle
+import os
+import sys
 import matplotlib.pyplot as plt
 
-def build_position_model(position):
-    # Load and process data
-    import sys
-    sys.path.append('..')
-    from data_cleaning.create_df import all_data
-    from team_context_integration import add_team_context_features, get_team_context_features
-    from enhanced_features import add_contextual_features, add_advanced_position_features
+sys.path.append('..')
+from data_cleaning.create_df import all_data
+from model_core import build_lagged_dataset, fit_position_model
 
-    data = all_data.copy()
+# Year whose trained models/visuals are saved under models/{YEAR} and
+# model_analysis/{YEAR}. Pass on the command line: python scikit_position_model.py 2026
+YEAR = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
 
-    # Add team context features
-    data = add_team_context_features(data, year=2025)
-
-    # Use PPR scoring directly from data
-    data['FantPt'] = pd.to_numeric(data['FantPt'], errors='coerce')
-    data['PPR_Points'] = pd.to_numeric(data['PPR'], errors='coerce')
-    data['Age'] = pd.to_numeric(data['Age'], errors='coerce')
-    data['Age'] = data['Age'].fillna(data['Age'].median())
-    data['G'] = pd.to_numeric(data['G'], errors='coerce')
-
-    # Add trend features using PPR scoring
-    data_sorted = data.sort_values(['Player', 'Age'])
-    prev_stats = data_sorted.groupby('Player')[['PPR_Points', 'G']].shift(1)
-    data_sorted['FantPt_Change'] = data_sorted['PPR_Points'] - prev_stats['PPR_Points']
-    data_sorted['Games_Change'] = data_sorted['G'] - prev_stats['G']
-
-    # Use enhanced_features for all contextual features
-    data = add_contextual_features(data_sorted)
-
-    # Filter by position
-    pos_data = data[data['FantPos'] == position].copy()
-
-    if len(pos_data) < 50:
-        print(f"Skipping {position}: only {len(pos_data)} samples")
-        return None
-
-    # Use enhanced_features for position-specific features
-    pos_data = add_advanced_position_features(pos_data, position)
-
-    # Base features + contextual features from enhanced_features.py
-    base_features = [
-        'Age', 'G', 'GS',
-        'Cmp', 'Att', 'Yds', 'TD', 'Int',
-        'Tgt', 'Rec', 'Y/R', 'Y/A', 'Fmb', 'FL',
-        'FantPt_Change', 'Games_Change'
-    ]
-
-    # Contextual features from enhanced_features.py
-    contextual_features = [
-        'Team_Change', 'Games_Missed_Prev', 'Injury_Recovery', 'Injury_Recovery_Boost',
-        'Low_Usage_High_Potential', 'Total_Touches', 'Workload_Premium', 'Elite_Workload',
-        'Proven_Starter', 'QB_Streaming_Penalty', 'Committee_Risk', 'Proven_Performer',
-        'Elite_Target_Share', 'Target_Regression_Risk', 'PPR_Std', 'Seasons_Played',
-        'Experience', 'Is_Rookie', 'Is_Sophomore'
-    ]
-
-    # Position-specific features from enhanced_features.py
-    if position == 'QB':
-        pos_features = ['Pass_Att_PG', 'QB_Efficiency', 'Turnover_Rate', 'Low_Attempts_Prev',
-                       'Rush_Att', 'Rush_Yds', 'Rush_TD', 'Rush_YPG', 'Rush_Att_PG', 'QB_Mobility_Score']
-    elif position == 'RB':
-        pos_features = ['Snap_Share_Proxy', 'Goal_Line_Upside', 'Workload_Bonus', 'Elite_Workload_Bonus',
-                       'Proven_Starter_Bonus', 'Young_Opportunity', 'Touches_PG', 'Target_Share',
-                       'RB_Age_Penalty', 'High_Workload']
-    else:  # WR/TE
-        pos_features = ['Target_Efficiency', 'Red_Zone_Value', 'Target_Regression_Protection',
-                       'Proven_Target_Bonus', 'Target_PG', 'Catch_Rate', 'YPG']
-
-    # Add team context features for this position
-    team_features = get_team_context_features(position)
-
-    # Combine all features
-    all_features = base_features + contextual_features + pos_features + team_features
-    feature_cols = [col for col in all_features if col in pos_data.columns]
-
-    features_df = pos_data[feature_cols].copy()
-
-    # Convert to numeric and fill NaNs
-    for col in features_df.columns:
-        features_df[col] = pd.to_numeric(features_df[col], errors='coerce')
-        features_df[col] = features_df[col].fillna(0)
-
-    X = features_df.values
-    y = pos_data['PPR_Points'].values
-
-    # Remove rows with NaN targets
-    valid_idx = ~pd.isna(y)
-    X = X[valid_idx]
-    y = y[valid_idx]
-
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Enhanced model parameters based on position characteristics
-    if position == 'QB':
-        # QBs more predictable, fewer trees needed
-        model = RandomForestRegressor(n_estimators=125, max_depth=10, random_state=42)
-    elif position == 'RB':
-        # RBs high variance, need more complex model
-        model = RandomForestRegressor(n_estimators=175, max_depth=12, random_state=42)
-    else:
-        # WR/TE standard enhanced parameters
-        model = RandomForestRegressor(n_estimators=150, max_depth=11, random_state=42)
-
-    model.fit(X_train, y_train)
-
-    # Evaluate
-    y_pred = model.predict(X_test)
-    mae = mean_absolute_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-
-    print(f"{position}: MAE = {mae:.1f}, R² = {r2:.3f}, Samples = {len(pos_data)}, Features = {len(feature_cols)}")
-
-    # Show feature importance for top features
-    feature_importance = pd.DataFrame({
-        'feature': feature_cols,
-        'importance': model.feature_importances_
-    }).sort_values('importance', ascending=False)
-
-    print(f"Top 5 features for {position}:")
-    for i, row in feature_importance.head().iterrows():
-        print(f"  {row['feature']}: {row['importance']:.3f}")
-
-    # Create visualizations
-    create_position_visuals(position, feature_importance, y_test, y_pred, mae, r2)
-
-    # Save model and feature names
-    model_data = {
-        'model': model,
-        'feature_names': feature_cols,
-        'feature_importance': feature_importance
-    }
-    # Save to models directory
-    with open(f'../models/model_{position.lower()}.pkl', 'wb') as f:
-        pickle.dump(model_data, f)
-
-    return model, {'mae': mae, 'r2': r2, 'samples': len(pos_data)}
-
-def create_position_visuals(position, feature_importance, y_test, y_pred, mae, r2):
+def create_position_visuals(position, year, feature_importance, y_test, y_pred, mae, r2):
     """Create visualizations for position model"""
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     fig.suptitle(f'{position} Model Analysis', fontsize=16)
@@ -179,10 +48,11 @@ def create_position_visuals(position, feature_importance, y_test, y_pred, mae, r
     axes[1,1].set_title('Error Distribution')
 
     plt.tight_layout()
-    plt.savefig(f'../model_analysis/{position}_model_analysis.png', dpi=300, bbox_inches='tight')
+    os.makedirs(f'../model_analysis/{year}', exist_ok=True)
+    plt.savefig(f'../model_analysis/{year}/{position}_model_analysis.png', dpi=300, bbox_inches='tight')
     plt.close()
 
-def create_summary_visual(model_stats):
+def create_summary_visual(model_stats, year):
     """Create summary comparison across positions"""
     positions = list(model_stats.keys())
     maes = [model_stats[pos]['mae'] for pos in positions]
@@ -214,25 +84,49 @@ def create_summary_visual(model_stats):
         axes[2].text(i, v + 10, f'{v}', ha='center')
 
     plt.tight_layout()
-    plt.savefig('../model_analysis/model_summary.png', dpi=300, bbox_inches='tight')
+    os.makedirs(f'../model_analysis/{year}', exist_ok=True)
+    plt.savefig(f'../model_analysis/{year}/model_summary.png', dpi=300, bbox_inches='tight')
     plt.close()
 
-# Build improved models for each position
-positions = ['QB', 'RB', 'WR', 'TE']
-models = {}
-model_stats = {}
+def main():
+    print(f"Building position-specific models for {YEAR}...")
+    print()
 
-print("Building position-specific models...")
-print()
+    lagged_data = build_lagged_dataset(all_data)
 
-for pos in positions:
-    model, stats = build_position_model(pos)
-    models[pos] = model
-    model_stats[pos] = stats
+    positions = ['QB', 'RB', 'WR', 'TE']
+    model_stats = {}
 
-# Create summary visualization
-create_summary_visual(model_stats)
+    for position in positions:
+        result = fit_position_model(lagged_data, position)
+        if result is None:
+            continue
 
-print("\nPosition-specific models created!")
-print("Models saved in /models/ directory as: model_qb.pkl, model_rb.pkl, etc.")
-print("Visualizations saved in model_analysis/ directory")
+        print(f"{position}: MAE = {result['mae']:.1f}, R² = {result['r2']:.3f}, "
+              f"Samples = {result['samples']}, Features = {len(result['feature_cols'])}")
+        print(f"Top 5 features for {position}:")
+        for _, row in result['feature_importance'].head().iterrows():
+            print(f"  {row['feature']}: {row['importance']:.3f}")
+
+        create_position_visuals(position, YEAR, result['feature_importance'],
+                                 result['y_test'], result['y_pred'], result['mae'], result['r2'])
+
+        model_data = {
+            'model': result['model'],
+            'feature_names': result['feature_cols'],
+            'feature_importance': result['feature_importance'],
+        }
+        os.makedirs(f'../models/{YEAR}', exist_ok=True)
+        with open(f'../models/{YEAR}/model_{position.lower()}.pkl', 'wb') as f:
+            pickle.dump(model_data, f)
+
+        model_stats[position] = {'mae': result['mae'], 'r2': result['r2'], 'samples': result['samples']}
+
+    create_summary_visual(model_stats, YEAR)
+
+    print("\nPosition-specific models created!")
+    print(f"Models saved in /models/{YEAR}/ directory as: model_qb.pkl, model_rb.pkl, etc.")
+    print(f"Visualizations saved in model_analysis/{YEAR}/ directory")
+
+if __name__ == "__main__":
+    main()

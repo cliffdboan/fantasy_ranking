@@ -137,7 +137,7 @@ def print_summary(comparison_df):
             print(f"  {player['Player']} ({player['Position']}) - Model: {int(player['Model_Rank'])}, Expert: {int(player['Expert_Rank'])}{adp}")
 
 if __name__ == "__main__":
-    model_file = "../predictions/fantasy_predictions_adjusted_2025.csv"
+    model_file = "../predictions/2025/fantasy_predictions_adjusted_2025.csv"
     expert_file = "../predictions/expert_projections_clean.csv"
     output_file = "model_vs_expert_comparison.csv"
     

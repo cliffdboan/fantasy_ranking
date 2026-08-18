@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
 
-def add_team_context_features(data, year=2024):
+def add_team_context_features(data, year=2024, verbose=True):
     """Add team context features to player data"""
-    
+
     # Load team context data
     try:
         team_context = pd.read_csv(f'../team_data/{year}/team_context_{year}.csv')
     except FileNotFoundError:
-        print(f"Team context file for {year} not found. Using defaults.")
+        if verbose:
+            print(f"Team context file for {year} not found. Using defaults.")
         return data
     
     # Merge team context with player data

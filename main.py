@@ -29,7 +29,7 @@ def get_prediction_year():
         except ValueError:
             print("Please enter a valid year")
 
-def run_model_training():
+def run_model_training(year):
     """Train the enhanced position-specific models"""
     print("\n" + "=" * 50)
     print("STEP 1: MODEL TRAINING")
@@ -37,7 +37,7 @@ def run_model_training():
 
     try:
         os.chdir('build_model')
-        result = subprocess.run([sys.executable, 'scikit_position_model.py'],
+        result = subprocess.run([sys.executable, 'scikit_position_model.py', str(year)],
                               capture_output=True, text=True)
         os.chdir('..')
 
@@ -60,33 +60,16 @@ def run_predictions(year):
 
     try:
         os.chdir('predicting')
-
-        # Update prediction year in the script
-        with open('predict_position_specific.py', 'r') as f:
-            content = f.read()
-
-        # Replace the PREDICTION_YEAR line
-        lines = content.split('\n')
-        for i, line in enumerate(lines):
-            if line.startswith('PREDICTION_YEAR = '):
-                lines[i] = f'PREDICTION_YEAR = {year}'
-                break
-
-        with open('predict_position_specific.py', 'w') as f:
-            f.write('\n'.join(lines))
-
-        # Run predictions
-        result = subprocess.run([sys.executable, 'predict_position_specific.py'],
+        result = subprocess.run([sys.executable, 'predict_position_specific.py', str(year)],
                               capture_output=True, text=True)
+        os.chdir('..')
 
         if result.returncode != 0:
             print(f"!!!!! Prediction generation failed: {result.stderr} !!!!!")
-            os.chdir('..')
             return False
 
         print(result.stdout)
         print(f"-----{year} predictions generated successfully.")
-        os.chdir('..')
         return True
     except Exception as e:
         print(f"!!!!! Prediction generation failed: {e} !!!!!")
@@ -101,37 +84,16 @@ def run_adjustments(year):
 
     try:
         os.chdir('predicting')
-
-        # Update adjustment year in the script
-        with open('prediction_adjustments.py', 'r') as f:
-            content = f.read()
-
-        # Update the year in the function definition and file paths
-        lines = content.split('\n')
-        for i, line in enumerate(lines):
-            if 'def apply_prediction_adjustments(predictions_df, year=' in line:
-                lines[i] = f'def apply_prediction_adjustments(predictions_df, year={year}):'
-            elif 'fantasy_predictions_position_specific_' in line and '.csv' in line:
-                lines[i] = line.replace('2025', str(year)).replace('2026', str(year))
-            elif 'fantasy_predictions_adjusted_' in line and '.csv' in line:
-                lines[i] = line.replace('2025', str(year)).replace('2026', str(year))
-        content = '\n'.join(lines)
-
-        with open('prediction_adjustments.py', 'w') as f:
-            f.write(content)
-
-        # Run adjustments
-        result = subprocess.run([sys.executable, 'prediction_adjustments.py'],
+        result = subprocess.run([sys.executable, 'prediction_adjustments.py', str(year)],
                               capture_output=True, text=True)
+        os.chdir('..')
 
         if result.returncode != 0:
             print(f"!!!!! Adjustment application failed: {result.stderr} !!!!!")
-            os.chdir('..')
             return False
 
         print(result.stdout)
         print("-----Adjustments applied successfully!")
-        os.chdir('..')
         return True
     except Exception as e:
         print(f"!!!!! Adjustment application failed: {e} !!!!!")
@@ -152,7 +114,7 @@ def run_evaluation(year):
 
     try:
         os.chdir('predicting')
-        result = subprocess.run([sys.executable, 'check_adjusted_predictions.py'],
+        result = subprocess.run([sys.executable, 'check_ppr_predictions.py', str(year)],
                               capture_output=True, text=True)
         os.chdir('..')
 
@@ -175,17 +137,14 @@ def show_results(year):
 
     print(f"\n📊 {year} Fantasy Football Predictions Generated!")
     print(f"\n📁 Output Files:")
-    print(f"   • Raw Predictions: predictions/fantasy_predictions_position_specific_{year}.csv")
-    print(f"   • Adjusted Predictions: predictions/fantasy_predictions_adjusted_{year}.csv")
-    print(f"   • Models: models/model_qb.pkl, model_rb.pkl, model_wr.pkl, model_te.pkl")
+    print(f"   • Raw Predictions: predictions/{year}/fantasy_predictions_position_specific_{year}.csv")
+    print(f"   • Adjusted Predictions: predictions/{year}/fantasy_predictions_adjusted_{year}.csv")
+    print(f"   • Models: models/{year}/model_qb.pkl, model_rb.pkl, model_wr.pkl, model_te.pkl")
 
     # Show top 10 predictions
     try:
         import pandas as pd
-        df = pd.read_csv(f'predictions/fantasy_predictions_adjusted_{year}.csv')
-        if not os.path.exists(f'predictions/fantasy_predictions_adjusted_{year}.csv'):
-            # Try the predicting directory
-            df = pd.read_csv(f'predicting/../predictions/fantasy_predictions_adjusted_{year}.csv')
+        df = pd.read_csv(f'predictions/{year}/fantasy_predictions_adjusted_{year}.csv')
         print(f"\n-----TOP 10 PREDICTIONS FOR {year}:")
         print("-" * 50)
         top_10 = df.head(10)
@@ -205,7 +164,7 @@ def main():
 
     # Pipeline steps
     steps = [
-        ("Model Training", lambda: run_model_training()),
+        ("Model Training", lambda: run_model_training(year)),
         ("Prediction Generation", lambda: run_predictions(year)),
         ("Adjustment Application", lambda: run_adjustments(year)),
         ("Performance Evaluation", lambda: run_evaluation(year))

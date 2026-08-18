@@ -1,13 +1,13 @@
 import pandas as pd
 
-def populate_team_context():
+def populate_team_context(year=2025):
     """Populate team context file with defensive rankings"""
 
     # Load defensive rankings
-    def_rankings = pd.read_csv('nfl_defense_rankings_2025.csv')
+    def_rankings = pd.read_csv(f'{year}/nfl_defense_rankings_{year}.csv')
 
     # Load existing team context template
-    team_context = pd.read_csv('team_context_2025.csv')
+    team_context = pd.read_csv(f'{year}/team_context_{year}.csv')
 
     # Create team mapping for merging
     team_mapping = {
@@ -41,11 +41,13 @@ def populate_team_context():
     updated_context = updated_context.drop(['team_mapped', 'QB', 'RB', 'WR', 'TE'], axis=1)
 
     # Save updated file
-    updated_context.to_csv('team_context_2025.csv', index=False)
+    updated_context.to_csv(f'{year}/team_context_{year}.csv', index=False)
 
     print("Team context updated with defensive rankings")
     print("\nSample of updated data:")
     print(updated_context[['Team', 'Def_Rank_vs_QB', 'Def_Rank_vs_RB', 'Def_Rank_vs_WR', 'Def_Rank_vs_TE']].head())
 
 if __name__ == "__main__":
-    populate_team_context()
+    import sys
+    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+    populate_team_context(year)

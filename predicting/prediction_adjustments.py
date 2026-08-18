@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
+import sys
 
 def apply_prediction_adjustments(predictions_df, year=2026):
     """Apply manual adjustments based on known prediction patterns"""
@@ -90,14 +92,17 @@ def show_adjustment_summary(predictions_df):
         print(f"      {row['Predicted_Fantasy_Points']:.0f} → {row['Adjusted_Fantasy_Points']:.0f} | {row['Adjustment_Reason']}")
 
 if __name__ == "__main__":
-    # Test with current predictions
+    # Year to adjust, passed on the command line: python prediction_adjustments.py 2026
+    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2026
+
     try:
-        predictions = pd.read_csv('../predictions/fantasy_predictions_position_specific_2025.csv')
-        adjusted = apply_prediction_adjustments(predictions)
+        predictions = pd.read_csv(f'../predictions/{year}/fantasy_predictions_position_specific_{year}.csv')
+        adjusted = apply_prediction_adjustments(predictions, year=year)
         show_adjustment_summary(adjusted)
 
         # Save adjusted predictions
-        adjusted.to_csv('../predictions/fantasy_predictions_adjusted_2025.csv', index=False)
+        os.makedirs(f'../predictions/{year}', exist_ok=True)
+        adjusted.to_csv(f'../predictions/{year}/fantasy_predictions_adjusted_{year}.csv', index=False)
         print(f"\nAdjusted predictions saved!")
 
     except FileNotFoundError:
