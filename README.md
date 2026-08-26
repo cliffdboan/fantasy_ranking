@@ -2,6 +2,10 @@
 
 Predicts PPR fantasy football points for the upcoming NFL season, position by position (QB/RB/WR/TE), using 26 years of historical stats plus team-level context (opponent strength, offensive line, projected volume). Built to be re-run every year: collect the new season's context, run one command, get ranked predictions.
 
+## HOW TO USE:
+
+I'm putting this above "How it works" because this point is very important. This is to be used in conjunction with logic. If you see somebody ranked highly that really shouldn't be - and it's really a function of how the modeling estimates rather than solid draft advice - you need to make that call on your own. For example, in 2025, the model predicted Wan'dale Robinson to be a top-tier WR. He was solid, and the model predicted that he would have a better year than his ADP let on, but his ranking within the model was too high. Draft steals like him higher than ADP, but not quite as high as the model predicts. Use your own judgement.
+
 ## How it works
 
 Each position gets its own model, trained to forecast a player's **next** season from their **most recent completed** season - the model never sees a season's own box score as a feature for predicting that same season's points (that would just be reconstructing the scoring formula, not forecasting anything). Training data is every player-season back to 2000, reshaped into `(season S stats -> season S+1 PPR)` pairs.
@@ -88,7 +92,7 @@ Download or scrape final fantasy stats for the season that just ended into `stat
 
 **2. Populate `team_data/2026/` for the upcoming season**
 
-- Seed the base file: copy `team_data/2025/team_context_2025.csv` to `team_data/2026/team_context_2026.csv`, bump `Year` to 2026, and hand-update `HC_Change`/`OC_Change` (coaching moves) and `OL_Rank` - no script sources these automatically, they're manual research.
+- Seed the base file: copy `team_data/2025/team_context_2025.csv` to `team_data/2026/team_context_2026.csv`, bump `Year` to 2026, and hand-update `HC_Change`/`OC_Change` (coaching moves) and `OL_Rank` - no script sources these automatically, they're manual research. Typically, sources will be pro-football-reference and fantasypros. This may change year-to-year.
 - Red-zone rates (optional, carries forward if skipped):
   ```
   cd team_data
