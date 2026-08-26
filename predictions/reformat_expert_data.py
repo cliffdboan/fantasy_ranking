@@ -65,7 +65,17 @@ def reformat_expert_projections(input_file, output_file):
     return expert_clean
 
 if __name__ == "__main__":
-    input_file = "expert_projections_2025.csv"
+    import sys
+    from datetime import datetime
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python reformat_expert_data.py <year>")
+
+    input_file = f"expert_projections_{year}.csv"
     output_file = "expert_projections_clean.csv"
 
     reformat_expert_projections(input_file, output_file)

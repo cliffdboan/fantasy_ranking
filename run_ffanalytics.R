@@ -19,9 +19,9 @@ if (!require("tidyr", quietly = TRUE)) {
   install.packages("tidyr")
 }
 
-# Install ffanalytics from the local directory
+# Install ffanalytics from GitHub (no longer vendored locally in this repo)
 cat("Installing ffanalytics package...\n")
-remotes::install_local("./ffanalytics-master", force = TRUE, quiet = FALSE)
+remotes::install_github("FantasyFootballAnalytics/ffanalytics", force = TRUE, quiet = FALSE)
 
 # Load the package
 library(ffanalytics)
@@ -46,7 +46,7 @@ tryCatch({
   scraped_data <- scrape_data(
     src = sources,
     pos = positions,
-    season = current_season  # Current season
+    season = current_season,  # Current season
     week = NULL     # Season-long projections
   )
 
@@ -64,7 +64,7 @@ tryCatch({
     add_player_info()
 
   # Save the results
-  output_file <- sprintf("predictions/expert_projections_%d.csv", current_season)
+  output_file <- sprintf("predictions/%d_expert_projections_%d.csv", current_season, current_season)
   write.csv(final_projections, output_file, row.names = FALSE)
   cat("Expert projections saved to:", output_file, "\n")
 

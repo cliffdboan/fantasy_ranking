@@ -7,9 +7,9 @@ Keeps the entry with the lowest Model_Rank (best ranking) for each player
 import pandas as pd
 import re
 
-def remove_duplicates():
+def remove_duplicates(year):
     # Read the CSV
-    df = pd.read_csv('draft_sheet_2025.csv')
+    df = pd.read_csv(f'draft_sheet_{year}.csv')
     
     print(f"Original CSV has {len(df)} rows")
     
@@ -52,8 +52,18 @@ def remove_duplicates():
     print(f"Removed {len(df) - len(df_clean)} duplicate entries")
     
     # Save the cleaned CSV
-    df_clean.to_csv('draft_sheet_2025.csv', index=False)
+    df_clean.to_csv(f'draft_sheet_{year}.csv', index=False)
     print("✅ Duplicates removed and CSV updated!")
 
 if __name__ == "__main__":
-    remove_duplicates()
+    import sys
+    from datetime import datetime
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python remove_duplicates.py <year>")
+
+    remove_duplicates(year)

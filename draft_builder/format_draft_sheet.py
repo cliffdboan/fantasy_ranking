@@ -7,8 +7,9 @@ Creates draft sheets, analyzes rookies, and manages draft data
 import pandas as pd
 import numpy as np
 import re
+from datetime import datetime
 
-DRAFT_YEAR = 2025
+DRAFT_YEAR = datetime.now().year
 
 def format_draft_sheet():
     # Read the CSV files
@@ -524,6 +525,11 @@ def format_draft_sheet():
         <div class="legend">
     """
 
+    # Fill in the year (kept out of the big CSS/JS block above to avoid
+    # having to escape every literal { and } in it as an f-string)
+    html = html.replace('Fantasy Draft Sheet 2025', f'Fantasy Draft Sheet {DRAFT_YEAR}')
+    html = html.replace('Fantasy Football Draft Sheet 2025', f'Fantasy Football Draft Sheet {DRAFT_YEAR}')
+
     # Add legend items
     for category, color in colors.items():
         html += f'<span class="legend-item" style="background-color: {color};">{category}</span>'
@@ -680,26 +686,28 @@ def format_draft_sheet():
     """
 
     # Write HTML file
-    with open('draft_sheet_2025.html', 'w', encoding='utf-8') as f:
+    with open(f'draft_sheet_{DRAFT_YEAR}.html', 'w', encoding='utf-8') as f:
         f.write(html)
 
     print("✅ Draft sheet created successfully!")
-    print("📄 Open 'draft_sheet_2025.html' in your browser")
+    print(f"📄 Open 'draft_sheet_{DRAFT_YEAR}.html' in your browser")
     print("\n🎯 Options:")
     print("• python3 format_draft_sheet.py - Create main draft sheet")
     print("• python3 format_draft_sheet.py rookies - Check missing rookies")
     print("• python3 format_draft_sheet.py mobile - Create mobile version")
 
 def check_rookies():
-    """Check for missing key 2025 rookies"""
+    """Check for missing key rookies for DRAFT_YEAR.
+    NOTE: key_rookies below is hand-curated per season - update these names
+    for the current year's rookie class before running."""
     key_rookies = {
-        'RB': ['Ashton Jeanty', 'Omarion Hampton', 'TreVeyon Henderson', 'RJ Harvey'],
-        'WR': ['Travis Hunter', 'Tetairoa McMillan', 'Emeka Egbuka', 'Luther Burden III'],
-        'QB': ['Shedeur Sanders', 'Cam Ward', 'Quinn Ewers', 'Jalen Milroe'],
-        'TE': ['Tyler Warren', 'Colston Loveland', 'Harold Fannin Jr.']
+        'RB': ['Jeremiyah Love', 'Jadrian Price', 'Jonah Coleman', 'Emmett Johnson', 'Mike Washington'],
+        'WR': ['Carnell Tate', 'Makai Lemon', "De'Zhaun Stribling", "Jordyn Tyson", "KC Conception", 'Denzel Boston'],
+        'QB': ['Fernando Mendoza'],
+        'TE': ['Kenyon Sadiq', 'Eli Stowers', 'Eli Raridon', 'Oscar Delp']
     }
 
-    df = pd.read_csv('draft_sheet_2025.csv')
+    df = pd.read_csv(f'draft_sheet_{DRAFT_YEAR}.csv')
     missing = []
 
     for pos, rookies in key_rookies.items():
@@ -719,8 +727,8 @@ def check_rookies():
 
 def create_mobile_version():
     """Create mobile-optimized version"""
-    df = pd.read_csv('draft_sheet_2025.csv')
-    team_df = pd.read_csv('../team_data/2025/team_context_2025.csv')
+    df = pd.read_csv(f'draft_sheet_{DRAFT_YEAR}.csv')
+    team_df = pd.read_csv(f'../team_data/{DRAFT_YEAR}/team_context_{DRAFT_YEAR}.csv')
     df = df.merge(team_df[['Team', 'OL_Rank']], on='Team', how='left')
 
     colors = {'Strong Buy': '#28a745', 'Buy': '#6f9654', 'Consensus': '#6c757d', 'Fade': '#fd7e14', 'Strong Fade': '#dc3545'}
@@ -730,7 +738,7 @@ def create_mobile_version():
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Draft 2025</title>
+    <title>Mobile Draft {DRAFT_YEAR}</title>
     <style>
         body {{ font-family: -apple-system, sans-serif; margin: 10px; background: #f5f5f5; }}
         .player-card {{ background: white; margin: 8px 0; padding: 12px; border-radius: 8px; border-left: 4px solid; }}
@@ -743,7 +751,7 @@ def create_mobile_version():
     </script>
 </head>
 <body>
-    <h2>🏈 Draft Sheet 2025</h2>
+    <h2>🏈 Draft Sheet {DRAFT_YEAR}</h2>
 """
 
     for _, row in df.head(100).iterrows():  # Top 100 for mobile
@@ -765,12 +773,23 @@ def create_mobile_version():
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'rookies':
-            check_rookies()
-        elif sys.argv[1] == 'mobile':
-            create_mobile_version()
-        else:
-            print("Usage: python3 format_draft_sheet.py [rookies|mobile]")
+
+    mode = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in ('rookies', 'mobile') else None
+    year_arg = sys.argv[2] if len(sys.argv) > 2 else (sys.argv[1] if mode is None and len(sys.argv) > 1 else None)
+
+    if year_arg is not None:
+        try:
+            DRAFT_YEAR = int(year_arg)
+        except ValueError:
+            print(f"Usage: python3 format_draft_sheet.py [rookies|mobile] [year]")
+            sys.exit(1)
+    else:
+        print(f"No year provided, defaulting to {DRAFT_YEAR} (current year). "
+              f"Usage: python3 format_draft_sheet.py [rookies|mobile] [year]")
+
+    if mode == 'rookies':
+        check_rookies()
+    elif mode == 'mobile':
+        create_mobile_version()
     else:
         format_draft_sheet()

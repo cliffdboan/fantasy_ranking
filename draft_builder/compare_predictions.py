@@ -137,9 +137,19 @@ def print_summary(comparison_df):
             print(f"  {player['Player']} ({player['Position']}) - Model: {int(player['Model_Rank'])}, Expert: {int(player['Expert_Rank'])}{adp}")
 
 if __name__ == "__main__":
-    model_file = "../predictions/2025/fantasy_predictions_adjusted_2025.csv"
+    import sys
+    from datetime import datetime
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python compare_predictions.py <year>")
+
+    model_file = f"../predictions/{year}/fantasy_predictions_adjusted_{year}.csv"
     expert_file = "../predictions/expert_projections_clean.csv"
     output_file = "model_vs_expert_comparison.csv"
-    
+
     comparison_df = compare_predictions(model_file, expert_file, output_file)
     print_summary(comparison_df)
