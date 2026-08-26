@@ -1,6 +1,7 @@
 import pandas as pd
+from datetime import datetime
 
-def remove_vacancy_columns(year=2025):
+def remove_vacancy_columns(year):
     """Remove target and carry vacancy columns from team context"""
 
     # Load team context
@@ -20,5 +21,12 @@ def remove_vacancy_columns(year=2025):
 
 if __name__ == "__main__":
     import sys
-    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python remove_vacancy_columns.py <year>")
+
     remove_vacancy_columns(year)

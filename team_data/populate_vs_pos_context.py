@@ -1,10 +1,11 @@
 import pandas as pd
+from datetime import datetime
 
-def populate_team_context(year=2025):
+def populate_team_context(year):
     """Populate team context file with defensive rankings"""
 
     # Load defensive rankings
-    def_rankings = pd.read_csv(f'{year}/nfl_defense_rankings_{year}.csv')
+    def_rankings = pd.read_csv(f'./{year}/nfl_defense_rankings_{year}.csv')
 
     # Load existing team context template
     team_context = pd.read_csv(f'{year}/team_context_{year}.csv')
@@ -49,5 +50,12 @@ def populate_team_context(year=2025):
 
 if __name__ == "__main__":
     import sys
-    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python populate_vs_pos_context.py <year>")
+
     populate_team_context(year)
