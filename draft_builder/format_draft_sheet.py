@@ -17,6 +17,15 @@ def format_draft_sheet():
     team_df = pd.read_csv(f'../team_data/{DRAFT_YEAR}/team_context_{DRAFT_YEAR}.csv')
     adp_df = pd.read_csv(f'../FantasyPros_{DRAFT_YEAR}_Overall_ADP_Rankings.csv')
 
+    # FantasyPros' export dropped the separate Player/Team/Bye columns in favor
+    # of a combined "Player (Bye)" column (e.g. "Jahmyr Gibbs   DET (6)").
+    # Normalize back to a plain 'Player' column for name matching below.
+    if 'Player' not in adp_df.columns:
+        bye_col = next(c for c in adp_df.columns if c.startswith('Player'))
+        adp_df['Player'] = adp_df[bye_col].str.replace(
+            r'\s{2,}\S*\s*\(\d+\)\s*$', '', regex=True
+        ).str.strip()
+
     # Merge team context data
     df = df.merge(team_df[['Team', 'OL_Rank', 'Pass_Attempts_Proj', 'Rush_Attempts_Proj']],
                   on='Team', how='left')
