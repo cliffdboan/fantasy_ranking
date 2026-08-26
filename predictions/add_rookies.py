@@ -12,12 +12,17 @@ def add_rookies(year):
 
     # Read current predictions and expert data
     df = pd.read_csv(f'{year}/fantasy_predictions_adjusted_{year}.csv')
-    expert_df = pd.read_csv('expert_projections_clean.csv')
+    expert_df = pd.read_csv(f'{year}/expert_projections_clean.csv')
 
     # Target rookies to add (based on expert projections)
     # TODO: Create a dynamic way to get this list - for now, hand-populate with
-    # this year's notable rookies before running.
+    # this year's notable rookies before running (kept in sync with
+    # draft_builder/format_draft_sheet.py's check_rookies() key_rookies dict).
     target_rookies = [
+        'Fernando Mendoza',
+        'Jeremiyah Love', 'Jadrian Price', 'Jonah Coleman', 'Emmett Johnson', 'Mike Washington',
+        'Carnell Tate', 'Makai Lemon', "De'Zhaun Stribling", 'Jordyn Tyson', 'KC Conception', 'Denzel Boston',
+        'Kenyon Sadiq', 'Eli Stowers', 'Eli Raridon', 'Oscar Delp',
     ]
 
     # Filter to only rookies not already in model
@@ -79,7 +84,7 @@ def add_rookies(year):
 
     # Generate new draft sheet with rookies included
     model_file = f'{year}/fantasy_predictions_adjusted_{year}.csv'
-    expert_file = 'expert_projections_clean.csv'
+    expert_file = f'{year}/expert_projections_clean.csv'
     output_file = f'../draft_builder/draft_sheet_{year}.csv'
 
     try:
