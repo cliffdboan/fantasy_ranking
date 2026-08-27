@@ -1,67 +1,73 @@
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import time
+import ssl
+import os
+import sys
+
+# draftedge now server-renders a plain HTML table per position (via ?pos= query
+# param) instead of the old ApexCharts heatmap, so this no longer needs Selenium.
+ssl._create_default_https_context = ssl._create_unverified_context
+
+TEAM_ABBREVIATIONS = {
+    'Arizona Cardinals': 'ARI',
+    'Atlanta Falcons': 'ATL',
+    'Baltimore Ravens': 'BAL',
+    'Buffalo Bills': 'BUF',
+    'Carolina Panthers': 'CAR',
+    'Chicago Bears': 'CHI',
+    'Cincinnati Bengals': 'CIN',
+    'Cleveland Browns': 'CLE',
+    'Dallas Cowboys': 'DAL',
+    'Denver Broncos': 'DEN',
+    'Detroit Lions': 'DET',
+    'Green Bay Packers': 'GB',
+    'Houston Texans': 'HOU',
+    'Indianapolis Colts': 'IND',
+    'Jacksonville Jaguars': 'JAX',
+    'Kansas City Chiefs': 'KC',
+    'Las Vegas Raiders': 'LV',
+    'Los Angeles Chargers': 'LAC',
+    'Los Angeles Rams': 'LAR',
+    'Miami Dolphins': 'MIA',
+    'Minnesota Vikings': 'MIN',
+    'New England Patriots': 'NE',
+    'New Orleans Saints': 'NO',
+    'New York Giants': 'NYG',
+    'New York Jets': 'NYJ',
+    'Philadelphia Eagles': 'PHI',
+    'Pittsburgh Steelers': 'PIT',
+    'San Francisco 49ers': 'SF',
+    'Seattle Seahawks': 'SEA',
+    'Tampa Bay Buccaneers': 'TB',
+    'Tennessee Titans': 'TEN',
+    'Washington Commanders': 'WAS',
+}
 
 def scrape_defense_rankings():
     """scraper to get team defense rankings vs each position"""
 
-    url = "https://draftedge.com/nfl/nfl-defense-vs-pos/"
+    positions = ['QB', 'RB', 'WR', 'TE']
+    data = []
 
-    # Setup Chrome
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    for position in positions:
+        url = f"https://draftedge.com/nfl/nfl-defense-vs-pos/?pos={position.lower()}"
+        table = pd.read_html(url)[0]
 
-    driver = webdriver.Chrome(options=chrome_options)
+        for _, row in table.iterrows():
+            team_name = row['Team']
+            abbreviation = TEAM_ABBREVIATIONS.get(team_name)
 
-    try:
-        driver.get(url)
+            if abbreviation:
+                data.append({
+                    'team': abbreviation,
+                    'position': position,
+                    'rank': int(row['Rank'])
+                })
+            else:
+                print(f"-----Unknown team '{team_name}', skipping")
 
-        # Wait for heatmap to load
-        wait = WebDriverWait(driver, 15)
-        wait.until(EC.presence_of_element_located((By.ID, "heatmap")))
-        time.sleep(5)
+    return data
 
-        # Get all heatmap rect[angle]s
-        rects = driver.find_elements(By.CSS_SELECTOR, ".apexcharts-heatmap-rect")
-        teams = [
-            'ARI', 'ATL', 'BAL', 'BUF', 'CAR', 'CHI', 'CIN', 'CLE',
-            'DAL', 'DEN', 'DET', 'GB', 'HOU', 'IND', 'JAX', 'KC',
-            'LV', 'LAC', 'LAR', 'MIA', 'MIN', 'NE', 'NO', 'NYG',
-            'NYJ', 'PHI', 'PIT', 'SF', 'SEA', 'TB', 'TEN', 'WAS'
-        ]
-
-        positions = ['TE', 'WR', 'RB', 'QB']
-
-        data = []
-
-        for rect in rects:
-            val = rect.get_attribute('val')
-            j_index = rect.get_attribute('j')
-            i_index = rect.get_attribute('i')
-
-            if val and j_index and i_index:
-                team_idx = int(j_index)
-                pos_idx = int(i_index)
-
-                if team_idx < len(teams) and pos_idx < len(positions):
-                    data.append({
-                        'team': teams[team_idx],
-                        'position': positions[pos_idx],
-                        'rank': int(val)
-                    })
-
-        return data
-
-    finally:
-        driver.quit()
-
-def main():
+def main(year):
     print("Scraping defense rankings...")
 
     data = scrape_defense_rankings()
@@ -73,9 +79,11 @@ def main():
         # Swap rows and columns
         pivot_df = df.pivot(index='team', columns='position', values='rank')
 
-        pivot_df.to_csv('nfl_defense_rankings.csv')
+        os.makedirs(f'../team_data/{year}', exist_ok=True)
+        output_path = f'../team_data/{year}/nfl_defense_rankings_{year}.csv'
+        pivot_df.to_csv(output_path)
 
-        print(f"+++++Saved {len(data)} rankings to 'nfl_defense_rankings.csv'")
+        print(f"+++++Saved {len(data)} rankings to '{output_path}'")
         print("\nPreview:")
         print(pivot_df.head())
 
@@ -83,4 +91,5 @@ def main():
         print("-----No data scraped")
 
 if __name__ == "__main__":
-    main()
+    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+    main(year)

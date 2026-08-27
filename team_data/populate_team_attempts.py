@@ -1,6 +1,7 @@
 import pandas as pd
+from datetime import datetime
 
-def populate_team_attempts(year=2024):
+def populate_team_attempts(year):
     """Populate team context with pass/rush attempt projections"""
 
     # Team mapping for consistency
@@ -62,5 +63,12 @@ def populate_team_attempts(year=2024):
 
 if __name__ == "__main__":
     import sys
-    year = int(sys.argv[1]) if len(sys.argv) > 1 else 2025
+
+    if len(sys.argv) > 1:
+        year = int(sys.argv[1])
+    else:
+        year = datetime.now().year
+        print(f"No year provided, defaulting to {year} (current year). "
+              f"Usage: python populate_team_attempts.py <year>")
+
     populate_team_attempts(year)
